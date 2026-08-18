@@ -91,7 +91,7 @@ def selamat_ulang_tahun_hamida():
     print(colored(center_text_visual("Falling in love for you...", cols), 'light_red', attrs=['bold']))
     print()
 
-    durasi_hujan = 4.0
+    durasi_hujan = 4.0 
     start_time_hujan = time.time()
     while time.time() - start_time_hujan < durasi_hujan:
         baris_hujan = [' '] * cols

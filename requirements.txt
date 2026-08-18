@@ -1,0 +1,11 @@
+qrcode
+pillow
+pyfiglet
+termcolor
+joblib
+pandas
+numpy
+fastapi
+pydantic
+scikit-learn
+uvicorn

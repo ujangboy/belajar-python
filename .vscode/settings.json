@@ -1,4 +1,25 @@
 {
     "git.ignoreLimitWarning": true,
-    "python-envs.defaultEnvManager": "ms-python.python:system"
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+
+    "editor.fontFamily": "Geist Mono, Consolas, 'Courier New', monospace",
+    "editor.fontSize": 14,
+    "editor.lineHeight": 1.6,
+    "editor.letterSpacing": 0.3,
+    "editor.fontWeight": "400",
+    "editor.cursorStyle": "line",
+    "editor.cursorBlinking": "smooth",
+    "editor.cursorWidth": 2,
+    "editor.smoothScrolling": true,
+    "editor.mouseWheelScrollSensitivity": 0.8,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+
+    "terminal.integrated.fontFamily": "Geist Mono, Consolas, 'Courier New', monospace",
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.lineHeight": 1.25,
+    "terminal.integrated.cursorStyle": "line",
+    "terminal.integrated.cursorWidth": 3,
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.gpuAcceleration": "on"
 }

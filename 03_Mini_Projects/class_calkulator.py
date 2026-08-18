@@ -6,7 +6,7 @@ class kalkulator:
     def penjumlahan(self):
         return self.angka1 + self.angka2
     
-    def penmgurangan (self):
+    def pengurangan (self):
         return self.angka1 - self.angka2
     
     def perkalian (self):
@@ -24,13 +24,13 @@ user_input1 = float(input("Masukan angka pertama: "))
 user_input2 = float(input("Masukan angka kedua: "))
 
 hasil_penjumlahan = kalkulator(user_input1, user_input2).penjumlahan()
-hasil_pengurangan = kalkulator(user_input1, user_input2).penmgurangan()
+hasil_pengurangan = kalkulator(user_input1, user_input2).pengurangan()
 hasil_perkalian = kalkulator(user_input1, user_input2).perkalian()
 hasil_pembagian = kalkulator(user_input1, user_input2).pembagian()
 
 print("hasil dari pernjumlahan = ", hasil_penjumlahan)
 print("hasil pengurangan = ", hasil_pengurangan)
-print("hasil pengurangan = ", hasil_perkalian)
+print("hasil perkalian = ", hasil_perkalian)
 print("hasil pembagian = ", hasil_pembagian)
 
 kalkulator.kali_dua = lambda x: x * 2
