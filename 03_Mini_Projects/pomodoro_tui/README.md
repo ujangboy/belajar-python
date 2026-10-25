@@ -67,32 +67,27 @@ lalu langsung membuka aplikasi. Tidak perlu aktivasi venv dan tidak perlu
 
 ## Perintah global: `pomodoro` / `fokus`
 
-Di mesin ini sudah dipasang dua perintah kecil di folder Scripts Python yang
-sudah ada di PATH, jadi dari folder mana pun (tanpa `cd`) cukup:
+Setelah install lewat pip (lihat **Install & jalankan → Opsi 2**), aplikasi
+bisa dibuka dari folder mana pun:
 
 ```powershell
 pomodoro
 ```
 
-atau:
+atau `fokus`. Tidak perlu `cd` dan tidak perlu aktivasi venv.
 
-```powershell
-fokus
+Di Windows ada juga cara tanpa pip: buat file `pomodoro.cmd` dan `fokus.cmd`
+kecil di folder yang ada di PATH (mis.
+`C:\Users\<kamu>\AppData\Local\Programs\Python\Python313\Scripts\`), isinya:
+
+```bat
+@echo off
+call "D:\path\ke\pomodoro_tui\run.cmd" %*
 ```
 
-Keduanya hanya pintu masuk yang memanggil `run.cmd` proyek ini, jadi
-dependency, venv, dan data tetap sama. Bisa dipakai dari cmd maupun
-PowerShell.
-
-Catatan:
-
-- Kalau folder project dipindah, perintah ini perlu diperbarui (atau minta
-  saya edit ulang).
-- Menghapus perintah: hapus file `pomodoro.cmd` dan `fokus.cmd` di
-  `C:\Users\a7916\AppData\Local\Programs\Python\Python313\Scripts`.
-- Di komputer lain, cara resminya: `pip install -e .` (memberi perintah
-  `fokus` dan `pomodoro`), atau buat file `.cmd` serupa di folder yang ada
-  di PATH.
+Di mesin pengembang proyek ini kedua shim itu sudah terpasang, jadi
+`pomodoro` / `fokus` langsung bisa dipakai. Untuk membatalkan, hapus kedua
+file tersebut.
 
 ## Prasyarat
 
@@ -128,7 +123,7 @@ Opsional: pasang project ini sebagai package supaya ada perintah global
 pip install -e .
 
 # lalu dari folder mana pun:
-fokus
+pomodoro        # atau: fokus
 ```
 
 ## Cara lain menjalankan
@@ -218,7 +213,7 @@ $env:FOKUS_DATA_DIR = "D:\data\fokus"; .\run.cmd
 pomodoro_tui/
 ├─ run.cmd                   # satu perintah untuk menjalankan (Windows)
 ├─ main.py                   # entry point `python main.py`
-├─ pyproject.toml            # metadata package + perintah `fokus`
+├─ pyproject.toml            # metadata package + perintah `fokus`/`pomodoro`
 ├─ fokus/
 │  ├─ app.py                # App Textual, keybinding, alur fase
 │  ├─ timer.py              # state machine Pomodoro (bebas UI)
