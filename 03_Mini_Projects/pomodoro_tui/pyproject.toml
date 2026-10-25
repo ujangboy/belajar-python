@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fokus-pomodoro"
+dynamic = ["version"]
+description = "FOKUS — timer Pomodoro TUI untuk belajar, dibangun dengan Textual"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["pomodoro", "timer", "tui", "textual", "produktivitas"]
+dependencies = [
+    "textual>=8.2,<9.0",
+]
+
+[project.urls]
+Repository = "https://github.com/ujangboy/belajar-python/tree/main/03_Mini_Projects/pomodoro_tui"
+Source = "https://github.com/ujangboy/belajar-python"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=1.0",
+    "textual-dev>=1.8",
+]
+
+[project.scripts]
+# Setelah `pip install -e .`, aplikasi bisa dijalankan dari folder mana pun
+# cukup dengan satu perintah:  fokus  atau  pomodoro
+fokus = "fokus.app:main"
+pomodoro = "fokus.app:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "fokus.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["fokus*"]
+
+[tool.setuptools.package-data]
+fokus = ["fokus.tcss"]

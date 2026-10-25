@@ -1,0 +1,357 @@
+Screen {
+    background: #12151C;
+    color: #E6EDF3;
+    layout: vertical;
+}
+
+#topbar {
+    height: 1;
+    layout: horizontal;
+    padding: 0 1;
+    background: #12151C;
+}
+
+#brand {
+    width: auto;
+    color: #FF7A6B;
+    text-style: bold;
+}
+
+#subtitle {
+    width: 1fr;
+    padding-left: 1;
+    color: #93A1B3;
+}
+
+#clock {
+    width: auto;
+    color: #93A1B3;
+    text-align: right;
+}
+
+#body {
+    height: 1fr;
+    align: center middle;
+    padding: 1;
+}
+
+TimerCard {
+    width: 90%;
+    max-width: 72;
+    height: auto;
+    border: round #2F3A4A;
+    background: #1A202B;
+    padding: 1 2;
+}
+
+TimerCard #phase {
+    width: 100%;
+    height: 1;
+    text-align: center;
+    color: #FF7A6B;
+}
+
+TimerCard #digits {
+    width: 100%;
+    height: 3;
+    text-align: center;
+    color: #FF7A6B;
+}
+
+TimerCard #progress {
+    width: 100%;
+    margin-top: 1;
+}
+
+TimerCard #dots {
+    width: 100%;
+    height: 1;
+    text-align: center;
+    margin-top: 1;
+}
+
+TimerCard #today {
+    width: 100%;
+    height: 1;
+    text-align: center;
+    color: #93A1B3;
+}
+
+TimerCard #hint {
+    width: 100%;
+    height: 1;
+    text-align: center;
+    color: #93A1B3;
+    margin-top: 1;
+}
+
+TimerCard.-focus #phase,
+TimerCard.-focus #digits {
+    color: #FF7A6B;
+}
+
+TimerCard.-short-break #phase,
+TimerCard.-short-break #digits {
+    color: #5FD3C4;
+}
+
+TimerCard.-long-break #phase,
+TimerCard.-long-break #digits {
+    color: #8AB4F8;
+}
+
+TimerCard.-focus ProgressLine .line--fill {
+    color: #FF7A6B;
+}
+
+TimerCard.-focus ProgressLine .line--track {
+    color: #53363B;
+}
+
+TimerCard.-short-break ProgressLine .line--fill {
+    color: #5FD3C4;
+}
+
+TimerCard.-short-break ProgressLine .line--track {
+    color: #2C4D51;
+}
+
+TimerCard.-long-break ProgressLine .line--fill {
+    color: #8AB4F8;
+}
+
+TimerCard.-long-break ProgressLine .line--track {
+    color: #36455E;
+}
+
+TimerCard ProgressLine .line--pct {
+    color: #E6EDF3;
+    background: #12151C;
+}
+
+TimerCard.-paused #phase {
+    color: #F0C674;
+}
+
+TimerCard.-paused #digits {
+    color: #93A1B3;
+}
+
+TimerCard.-paused ProgressLine .line--fill {
+    color: #93A1B3;
+}
+
+TimerCard.-paused ProgressLine .line--track {
+    color: #323A46;
+}
+
+#zen-hint {
+    display: none;
+    dock: bottom;
+    height: 1;
+    text-align: center;
+    color: #93A1B3;
+}
+
+#too-small {
+    display: none;
+    width: 100%;
+    height: 100%;
+    content-align: center middle;
+    text-align: center;
+    color: #93A1B3;
+}
+
+Screen.zen TimerCard {
+    width: 100%;
+    max-width: 96;
+    border: none;
+    background: transparent;
+    padding: 2 4;
+}
+
+Screen.zen TimerCard #dots,
+Screen.zen TimerCard #today,
+Screen.zen TimerCard #hint {
+    display: none;
+}
+
+Footer {
+    height: 1;
+    background: #12151C;
+    color: #93A1B3;
+}
+
+FooterKey .footer-key--key {
+    color: #E6EDF3;
+    background: #12151C;
+    text-style: bold;
+}
+
+FooterKey .footer-key--description {
+    color: #93A1B3;
+    background: #12151C;
+}
+
+StatsScreen {
+    align: center middle;
+    background: #12151C 82%;
+}
+
+#stats-box {
+    width: 90%;
+    max-width: 76;
+    height: auto;
+    max-height: 96%;
+    border: round #2F3A4A;
+    background: #1A202B;
+    padding: 1 2;
+    overflow-y: auto;
+}
+
+#stats-title {
+    color: #FF7A6B;
+    text-style: bold;
+}
+
+.section-label {
+    margin-top: 1;
+    color: #93A1B3;
+    text-style: bold;
+}
+
+#stats-hint {
+    margin-top: 0;
+    color: #93A1B3;
+}
+
+SettingsScreen {
+    align: center middle;
+    background: #12151C 82%;
+}
+
+#settings-box {
+    width: 64;
+    max-width: 92%;
+    height: auto;
+    border: round #2F3A4A;
+    background: #1A202B;
+    padding: 1 2;
+}
+
+#settings-title {
+    color: #FF7A6B;
+    text-style: bold;
+}
+
+#durations {
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-gutter: 1 2;
+    height: auto;
+    margin-top: 1;
+}
+
+.field {
+    height: auto;
+}
+
+.field-label {
+    height: 1;
+    color: #93A1B3;
+}
+
+.field-input {
+    width: 100%;
+    background: #12151C;
+}
+
+#toggles {
+    height: auto;
+    layout: horizontal;
+    margin-top: 1;
+}
+
+.toggle-field {
+    width: 1fr;
+    height: auto;
+}
+
+#settings-hint {
+    margin-top: 1;
+    color: #93A1B3;
+}
+
+#settings-buttons {
+    height: 3;
+    layout: horizontal;
+    align: right middle;
+    margin-top: 1;
+}
+
+#settings-buttons Button {
+    margin-left: 1;
+}
+
+HelpScreen {
+    align: center middle;
+    background: #12151C 82%;
+}
+
+#help-box {
+    width: 62;
+    max-width: 92%;
+    height: auto;
+    border: round #2F3A4A;
+    background: #1A202B;
+    padding: 1 2;
+}
+
+#help-title {
+    color: #FF7A6B;
+    text-style: bold;
+}
+
+#help-text {
+    margin-top: 1;
+}
+
+#help-hint {
+    margin-top: 1;
+    color: #93A1B3;
+}
+
+ConfirmScreen {
+    align: center middle;
+    background: #12151C 82%;
+}
+
+#confirm-box {
+    width: 58;
+    max-width: 92%;
+    height: auto;
+    border: round #F0C674;
+    background: #1A202B;
+    padding: 1 2;
+}
+
+#confirm-title {
+    color: #F0C674;
+    text-style: bold;
+}
+
+#confirm-message {
+    margin-top: 1;
+    color: #E6EDF3;
+}
+
+#confirm-buttons {
+    height: 3;
+    layout: horizontal;
+    align: right middle;
+    margin-top: 1;
+}
+
+#confirm-buttons Button {
+    margin-left: 1;
+}
