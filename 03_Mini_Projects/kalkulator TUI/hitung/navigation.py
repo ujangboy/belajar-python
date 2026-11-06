@@ -21,15 +21,15 @@ class ToolSpec:
 def default_tools() -> list[ToolSpec]:
     return [
         ToolSpec("dashboard", "Dashboard", "Sistem", "Beranda semua alat", "Ctrl+H", ("home", "beranda")),
-        ToolSpec("standard", "Kalkulator Standar", "Kalkulator", "Ekspresi harian, riwayat, ans", "Ctrl+1", ("hitung", "basic")),
-        ToolSpec("scientific", "Kalkulator Ilmiah", "Kalkulator", "Fungsi trigonometri, log, faktorial", "Ctrl+2", ("sin", "cos", "log")),
+        ToolSpec("standard", "Kalkulator Standar", "Kalkulator", "Tombol angka dan operator harian", "Ctrl+1", ("hitung", "basic")),
+        ToolSpec("scientific", "Kalkulator Ilmiah", "Kalkulator", "Trigonometri, log, pangkat, faktorial", "Ctrl+2", ("sin", "cos", "log")),
         ToolSpec("converter", "Konverter Unit", "Konverter", "Suhu, panjang, berat, volume, data, dll.", "Ctrl+3", ("unit", "convert")),
-        ToolSpec("percentage", "Persentase", "Sehari-hari", "Diskon, pajak, tip, perubahan", None, ("discount", "tax")),
-        ToolSpec("date", "Tanggal & Waktu", "Waktu", "Selisih hari, usia, timestamp", None, ("age", "unix")),
-        ToolSpec("finance", "Keuangan", "Keuangan", "Bunga, pinjaman, cicilan", None, ("loan", "interest")),
-        ToolSpec("math", "Matematika", "Matematika", "FPB, KPK, prima, statistik", None, ("gcd", "prime")),
-        ToolSpec("data", "Data & Sistem Angka", "Data", "Bin/Des/Hex, bitwise, ukuran data", None, ("binary", "hex")),
-        ToolSpec("electrical", "Kelistrikan", "Teknik", "Hukum Ohm dan daya", None, ("ohm", "volt")),
+        ToolSpec("percentage", "Persentase", "Sehari-hari", "X% dari Y, perubahan, diskon, pajak", None, ("discount", "tax")),
+        ToolSpec("tip", "Tip", "Sehari-hari", "Tip, total tagihan, pembagian per orang", None, ("tip", "gratuity")),
+        ToolSpec("history", "Riwayat", "Sistem", "Semua hitungan tersimpan", "F2", ("history", "riwayat")),
+        ToolSpec("favorites", "Favorit", "Sistem", "Alat yang ditandai favorit", "Ctrl+F", ("favorite", "favorit")),
+        ToolSpec("settings", "Pengaturan", "Sistem", "Presisi, sudut, tema, suara", "F3", ("settings", "pengaturan")),
+        ToolSpec("help", "Bantuan", "Bantuan", "Cara pakai dan peta tombol", "F1", ("help", "bantuan")),
     ]
 
 
