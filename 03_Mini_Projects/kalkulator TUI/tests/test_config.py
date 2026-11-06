@@ -18,7 +18,7 @@ def test_defaults() -> None:
     assert settings.angle == DEFAULT_ANGLE
     assert settings.sound is True
     assert settings.theme == "dark"
-    assert settings.accent == "mint"
+    assert settings.accent == "blue"
     assert settings.number_format == "id"
     assert settings.history_limit == 0
     assert settings.favorites == []

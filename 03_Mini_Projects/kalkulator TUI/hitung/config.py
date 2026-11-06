@@ -20,7 +20,7 @@ ANGLE_LABELS = {"deg": "derajat (deg)", "rad": "radian (rad)"}
 DEFAULT_THEME = "dark"
 THEME_CHOICES = ("dark", "light")
 
-DEFAULT_ACCENT = "mint"
+DEFAULT_ACCENT = "blue"
 ACCENT_CHOICES = ("mint", "blue", "amber", "rose")
 
 DEFAULT_NUMBER_FORMAT = "id"

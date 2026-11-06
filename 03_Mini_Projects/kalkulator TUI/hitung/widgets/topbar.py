@@ -27,8 +27,8 @@ BULAN = (
 
 class TopBar(Horizontal):
     def compose(self) -> ComposeResult:
-        yield Static("HITUNG", id="brand")
-        yield Static("kalkulator TUI", id="subtitle")
+        yield Static("KALKULATOR PRO", id="brand")
+        yield Static("Smart Calculation in Your Terminal", id="subtitle")
         yield Static("", id="today")
         yield Static("", id="clock")
 

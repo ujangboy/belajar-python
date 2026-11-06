@@ -1,6 +1,6 @@
 /* Palet mengikuti theme.py */
 Screen {
-    background: #12151C;
+    background: #0B0E14;
     color: #E6EDF3;
     layout: vertical;
 }
@@ -9,12 +9,12 @@ Screen {
     height: 1;
     layout: horizontal;
     padding: 0 1;
-    background: #12151C;
+    background: #0B0E14;
 }
 
 #brand {
     width: auto;
-    color: #6FD3A8;
+    color: #4C8DFF;
     text-style: bold;
 }
 
@@ -47,8 +47,8 @@ CalcCard {
     width: 1fr;
     max-width: 74;
     height: 100%;
-    border: round #2F3A4A;
-    background: #1A202B;
+    border: round #2A3444;
+    background: #111827;
     padding: 1 2;
     align: center middle;
 }
@@ -69,7 +69,7 @@ CalcCard #result {
 }
 
 CalcCard #result.-preview {
-    color: #8AB4F8;
+    color: #4C8DFF;
 }
 
 CalcCard #last {
@@ -87,8 +87,8 @@ CalcCard #expr-label {
 }
 
 CalcCard Input {
-    background: #12151C;
-    border: round #2F3A4A;
+    background: #0B0E14;
+    border: round #2A3444;
 }
 
 CalcCard Input:focus {
@@ -110,8 +110,8 @@ HistoryPanel {
     width: 34;
     height: 100%;
     margin-left: 2;
-    border: round #2F3A4A;
-    background: #161C26;
+    border: round #2A3444;
+    background: #1A202B;
     padding: 1 2;
 }
 
@@ -154,25 +154,25 @@ HistoryPanel #history-hint {
 
 Footer {
     height: 1;
-    background: #12151C;
+    background: #0B0E14;
     color: #93A1B3;
 }
 
 FooterKey .footer-key--key {
     color: #E6EDF3;
-    background: #12151C;
+    background: #0B0E14;
     text-style: bold;
 }
 
 FooterKey .footer-key--description {
     color: #93A1B3;
-    background: #12151C;
+    background: #0B0E14;
 }
 
 /* ---------- modal: riwayat ---------- */
 HistoryScreen {
     align: center middle;
-    background: #12151C 82%;
+    background: #0B0E14 82%;
 }
 
 #history-box {
@@ -180,8 +180,8 @@ HistoryScreen {
     max-width: 78;
     height: auto;
     max-height: 96%;
-    border: round #2F3A4A;
-    background: #1A202B;
+    border: round #2A3444;
+    background: #111827;
     padding: 1 2;
 }
 
@@ -220,7 +220,7 @@ HistoryScreen {
 /* ---------- modal: pengaturan ---------- */
 SettingsScreen {
     align: center middle;
-    background: #12151C 82%;
+    background: #0B0E14 82%;
 }
 
 #settings-box {
@@ -265,7 +265,7 @@ SettingsScreen {
 /* ---------- modal: bantuan ---------- */
 HelpScreen {
     align: center middle;
-    background: #12151C 82%;
+    background: #0B0E14 82%;
 }
 
 #help-box {
@@ -273,8 +273,8 @@ HelpScreen {
     max-width: 94%;
     height: auto;
     max-height: 96%;
-    border: round #2F3A4A;
-    background: #1A202B;
+    border: round #2A3444;
+    background: #111827;
     padding: 1 2;
 }
 
@@ -295,20 +295,20 @@ HelpScreen {
 /* ---------- modal: konfirmasi ---------- */
 ConfirmScreen {
     align: center middle;
-    background: #12151C 82%;
+    background: #0B0E14 82%;
 }
 
 #confirm-box {
     width: 58;
     max-width: 92%;
     height: auto;
-    border: round #F0C674;
-    background: #1A202B;
+    border: round #FF7A6B;
+    background: #111827;
     padding: 1 2;
 }
 
 #confirm-title {
-    color: #F0C674;
+    color: #FF7A6B;
     text-style: bold;
 }
 
@@ -335,3 +335,41 @@ SearchScreen { align: center middle; }
 #search-list-wrap { height: 16; margin-top: 1; }
 #search-buttons { height: 3; align: right middle; margin-top: 1; }
 .search-item { width: 100%; margin-bottom: 1; }
+
+/* ---------- tombol: sudut membulat sesuai desain ---------- */
+/* Shortcut: gaya bawaan Button memakai border datar (border-top/bottom), aturan ini menimpanya per varian. */
+Button.-style-default {
+    border: round $border;
+}
+
+Button.-style-default:hover {
+    border: round $primary;
+}
+
+/* ---------- widget v2 (sidebar/display/keypad): warna & border saja, widget menyusul di Task 3 ---------- */
+#sidebar {
+    background: $panel;
+    border: round $border;
+}
+
+#calc-expression {
+    color: $text-muted;
+}
+
+#calc-result {
+    color: #6FD3A8;
+    text-style: bold;
+}
+
+#calc-result.-preview {
+    color: $primary;
+}
+
+#calc-status,
+#calc-angle {
+    color: $text-muted;
+}
+
+.key {
+    border: round $border;
+}
