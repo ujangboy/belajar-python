@@ -10,7 +10,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.css.query import NoMatches
 from textual.events import Resize
-from textual.widgets import ContentSwitcher, Input
+from textual.widgets import ContentSwitcher, Input, Static
 
 from .config import Settings
 from .history import HistoryRecord
@@ -35,6 +35,8 @@ from .widgets.standard_tool import StandardTool
 
 # Di bawah lebar ini sidebar disembunyikan supaya kartu hitung tetap lega.
 SIDEBAR_MIN_WIDTH = 90
+MIN_WIDTH = 60
+MIN_HEIGHT = 18
 
 
 class HitungApp(App[None]):
@@ -54,7 +56,6 @@ class HitungApp(App[None]):
         Binding("f1", "show_help", "Bantuan", show=False, key_display="F1"),
         Binding("f2", "show_history", "Riwayat", key_display="F2"),
         Binding("f3", "show_settings", "Atur", key_display="F3"),
-        Binding("f4", "toggle_compact", "Ringkas", key_display="F4"),
         Binding("escape", "back_or_clear", "Kembali/Bersihkan", key_display="Esc"),
         Binding("up", "recall_previous", show=False),
         Binding("down", "recall_next", show=False),
@@ -83,60 +84,12 @@ class HitungApp(App[None]):
             self.register_theme(theme)
         self.theme = theme.name
 
-    # ---- compatibility shims for existing tests ----
-    @property
-    def _compact(self) -> bool:
-        tool = self._standard_tool()
-        return bool(tool and tool.compact)
-
-    @_compact.setter
-    def _compact(self, value: bool) -> None:
-        tool = self._standard_tool()
-        if tool:
-            tool.compact = bool(value)
-            tool.update_size()
-
-    @property
-    def _recall(self) -> list[str]:
-        tool = self._standard_tool()
-        return tool._recall if tool else []
-
-    @_recall.setter
-    def _recall(self, value: list[str]) -> None:
-        tool = self._standard_tool()
-        if tool:
-            tool._recall = list(value)
-
-    @property
-    def _recall_index(self):
-        tool = self._standard_tool()
-        return tool._recall_index if tool else None
-
-    @_recall_index.setter
-    def _recall_index(self, value):
-        tool = self._standard_tool()
-        if tool:
-            tool._recall_index = value
-
-    def _format(self, value: float) -> str:
-        return self._standard_tool_or_new()._format(value)
-
-    def _refresh_preview(self) -> None:
-        tool = self._standard_tool()
-        if tool:
-            tool.refresh_preview()
-
+    # ---- akses tool standar ----
     def _standard_tool(self) -> StandardTool | None:
         try:
             return self.query_one("#tool-standard", StandardTool)
         except NoMatches:
             return None
-
-    def _standard_tool_or_new(self) -> StandardTool:
-        tool = self._standard_tool()
-        if tool is None:
-            tool = StandardTool(id="tool-standard")
-        return tool
 
     # ---- layout ----
     def compose(self) -> ComposeResult:
@@ -153,14 +106,24 @@ class HitungApp(App[None]):
                 yield MathTool(id="tool-math")
                 yield DataTool(id="tool-data")
                 yield ElectricalTool(id="tool-electrical")
+        yield Static("Terminal terlalu kecil — minimal 60 × 18", id="too-small")
 
     def on_mount(self) -> None:
-        self._sync_sidebar_width(self.size.width)
+        self._sync_layout(self.size)
         self.open_tool("standard")
 
     @on(Resize)
     def _on_app_resize(self, event: Resize) -> None:
-        self._sync_sidebar_width(event.size.width)
+        self._sync_layout(event.size)
+
+    def _sync_layout(self, size) -> None:
+        self._sync_sidebar_width(size.width)
+        fits = size.width >= MIN_WIDTH and size.height >= MIN_HEIGHT
+        try:
+            self.query_one("#shell").display = fits
+            self.query_one("#too-small", Static).display = not fits
+        except NoMatches:
+            pass
 
     def _sync_sidebar_width(self, width: int) -> None:
         try:
@@ -202,11 +165,7 @@ class HitungApp(App[None]):
         if self._active_tool == "standard":
             tool = self._standard_tool()
             if tool:
-                tool.refresh_preview()
-                try:
-                    tool.query_one("#expr", Input).focus()
-                except NoMatches:
-                    pass
+                tool.refresh_display()
         if self._active_tool == "scientific":
             try:
                 sci = self.query_one("#tool-scientific", ScientificTool)
@@ -349,9 +308,7 @@ class HitungApp(App[None]):
             tool = self._standard_tool()
             if tool:
                 tool.rebuild_recall()
-                tool.refresh_history_panel()
-                tool.refresh_today()
-                tool.refresh_preview()
+                tool.refresh_display()
             self.notify("Riwayat dihapus.", timeout=2)
         elif hasattr(result, "expression") and hasattr(result, "category"):
             # Optional: history screens may return a record to reuse.
@@ -361,8 +318,7 @@ class HitungApp(App[None]):
                 self.open_tool("standard" if cat == "standard" else "scientific")
                 try:
                     if cat == "standard":
-                        tool._set_input(result.expression)
-                        tool.refresh_preview()
+                        tool.set_expression(result.expression)
                     else:
                         sci = self.query_one("#tool-scientific", ScientificTool)
                         sci._set_input(result.expression)
@@ -373,13 +329,7 @@ class HitungApp(App[None]):
         else:
             tool = self._standard_tool()
             if tool:
-                tool.refresh_preview()
-        try:
-            tool = self._standard_tool()
-            if tool and self._active_tool == "standard":
-                tool.query_one("#expr", Input).focus()
-        except NoMatches:
-            pass
+                tool.refresh_display()
 
     def action_show_settings(self) -> None:
         if self._modal_open():
@@ -387,13 +337,7 @@ class HitungApp(App[None]):
         self.push_screen(SettingsScreen(self.settings), self._after_settings)
 
     def _after_settings(self, result: Settings | None) -> None:
-        tool = self._standard_tool()
         if result is None:
-            if tool and self._active_tool == "standard":
-                try:
-                    tool.query_one("#expr", Input).focus()
-                except NoMatches:
-                    pass
             return
         try:
             self.storage.save_settings(result)
@@ -407,9 +351,9 @@ class HitungApp(App[None]):
             )
         self.settings = result
         self._apply_theme_settings()
+        tool = self._standard_tool()
         if tool:
-            tool.refresh_history_panel()
-            tool.refresh_preview()
+            tool.refresh_display()
         try:
             sci = self.query_one("#tool-scientific", ScientificTool)
             sci._refresh_angle()
@@ -417,23 +361,11 @@ class HitungApp(App[None]):
         except Exception:
             pass
         self.notify("Pengaturan disimpan.", timeout=2)
-        if tool and self._active_tool == "standard":
-            try:
-                tool.query_one("#expr", Input).focus()
-            except NoMatches:
-                pass
 
     def action_show_help(self) -> None:
         if self._modal_open():
             return
         self.push_screen(HelpScreen())
-
-    def action_toggle_compact(self) -> None:
-        if self._modal_open():
-            return
-        tool = self._standard_tool()
-        if tool and self._active_tool == "standard":
-            tool.action_toggle_compact()
 
 
 def main() -> None:

@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from textual.widgets import Input, Select, Static, Switch
+from textual.widgets import Input, Select, Switch
 
 from hitung.app import HitungApp
 from hitung.history import HistoryRecord
@@ -15,24 +15,30 @@ from hitung.screens.settings_screen import SettingsScreen
 from hitung.storage import Storage
 
 
-def shown(widget: Static) -> str:
-    content = widget.content
-    if hasattr(content, "plain"):
-        return str(content.plain)
-    return str(content)
+async def press(pilot, *keys: str) -> None:
+    for key in keys:
+        await pilot.click(f"#{key}")
+        await pilot.pause()
 
 
+async def press_expression(pilot, tokens: str) -> None:
+    """Tekan tombol standar untuk ekspresi sederhana seperti '12+3*(4-1)'."""
+    labels = {
+        "+": "key-plus",
+        "-": "key-minus",
+        "*": "key-multiply",
+        "/": "key-divide",
+        "(": "key-lparen",
+        ")": "key-rparen",
+        ".": "key-dot",
+    }
+    for char in tokens:
+        await press(pilot, labels.get(char, f"key-{char}"))
 
 
-async def open_standard(app: HitungApp, pilot) -> None:
-    app.open_tool("standard")
-    await pilot.pause()
-
-async def commit(app: HitungApp, pilot, expression: str) -> None:
-    app.query_one("#expr", Input).value = expression
-    await pilot.pause()
-    await pilot.press("enter")
-    await pilot.pause()
+async def commit(pilot, tokens: str) -> None:
+    await press_expression(pilot, tokens)
+    await press(pilot, "key-equals")
 
 
 @pytest.mark.asyncio
@@ -41,11 +47,9 @@ async def test_main_screen_default_state(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        assert shown(app.query_one("#result", Static)) == "0"
-        assert app.focused is app.query_one("#expr", Input)
-        assert app.query_one("#history-panel").display is True
-        assert "Enter" in shown(app.query_one("#status", Static))
+        assert app.query_one("#calc-result").content == "0"
+        assert app.query_one("#calc-expression").content == ""
+        assert app.query_one("#sidebar").display is True
         assert app.records == []
 
 
@@ -55,29 +59,26 @@ async def test_live_preview_and_commit(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
+        await press_expression(pilot, "12+3*(4-1)")
 
-        field = app.query_one("#expr", Input)
-        field.value = "12 + 3 * (4 - 1)"
-        await pilot.pause()
-
-        result = app.query_one("#result", Static)
-        assert shown(result) == "21"
+        result = app.query_one("#calc-result")
+        assert result.content == "21"
         assert "-preview" in result.classes
+        assert app.query_one("#calc-expression").content == "12+3*(4-1)"
 
-        await pilot.press("enter")
-        await pilot.pause()
+        await press(pilot, "key-equals")
 
-        assert shown(result) == "21"
+        assert result.content == "21"
         assert "-preview" not in result.classes
-        assert field.value == ""
+        assert app.query_one("#calc-expression").content == ""
         assert len(app.records) == 1
         assert (tmp_path / "history.jsonl").exists()
 
         stored = app.storage.load_history()
         assert len(stored) == 1
-        assert stored[0].expression == "12 + 3 * (4 - 1)"
+        assert stored[0].expression == "12+3*(4-1)"
         assert stored[0].result == "21"
+        assert stored[0].category == "standard"
 
 
 @pytest.mark.asyncio
@@ -86,11 +87,10 @@ async def test_error_is_shown_and_not_saved(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "1/0")
+        await commit(pilot, "1/0")
 
-        status = app.query_one("#status", Static)
-        assert "nol" in shown(status).lower()
+        status = app.query_one("#calc-status")
+        assert "nol" in str(status.content).lower()
         assert "-error" in status.classes
         assert app.records == []
         assert not (tmp_path / "history.jsonl").exists()
@@ -102,15 +102,13 @@ async def test_incomplete_expression_keeps_last_result(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "2+3")
-        assert shown(app.query_one("#result", Static)) == "5"
+        await commit(pilot, "2+3")
+        assert app.query_one("#calc-result").content == "5"
 
-        app.query_one("#expr", Input).value = "2+"
-        await pilot.pause()
+        await press(pilot, "key-2", "key-plus")
 
-        assert shown(app.query_one("#result", Static)) == "5"
-        assert "-preview" not in app.query_one("#result", Static).classes
+        assert app.query_one("#calc-result").content == "5"
+        assert "-preview" not in app.query_one("#calc-result").classes
 
 
 @pytest.mark.asyncio
@@ -119,20 +117,17 @@ async def test_escape_clears_entry(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "5+5")
+        await commit(pilot, "5+5")
 
-        field = app.query_one("#expr", Input)
-        field.value = "7*7"
-        await pilot.pause()
-        assert shown(app.query_one("#result", Static)) == "49"
+        await press_expression(pilot, "7*7")
+        assert app.query_one("#calc-result").content == "49"
 
         await pilot.press("escape")
         await pilot.pause()
 
-        assert field.value == ""
-        assert shown(app.query_one("#result", Static)) == "10"
-        assert "-preview" not in app.query_one("#result", Static).classes
+        assert app.query_one("#calc-expression").content == ""
+        assert app.query_one("#calc-result").content == "10"
+        assert "-preview" not in app.query_one("#calc-result").classes
 
 
 @pytest.mark.asyncio
@@ -141,31 +136,30 @@ async def test_history_recall_with_arrows(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "1+1")
-        await commit(app, pilot, "2+2")
+        await commit(pilot, "1+1")
+        await commit(pilot, "2+2")
 
-        field = app.query_one("#expr", Input)
-
-        await pilot.press("up")
-        await pilot.pause()
-        assert field.value == "2+2"
+        expression = app.query_one("#calc-expression")
 
         await pilot.press("up")
         await pilot.pause()
-        assert field.value == "1+1"
+        assert expression.content == "2+2"
 
         await pilot.press("up")
         await pilot.pause()
-        assert field.value == "1+1"
+        assert expression.content == "1+1"
+
+        await pilot.press("up")
+        await pilot.pause()
+        assert expression.content == "1+1"
 
         await pilot.press("down")
         await pilot.pause()
-        assert field.value == "2+2"
+        assert expression.content == "2+2"
 
         await pilot.press("down")
         await pilot.pause()
-        assert field.value == ""
+        assert expression.content == ""
 
 
 @pytest.mark.asyncio
@@ -180,9 +174,7 @@ async def test_copy_result(tmp_path: Path, monkeypatch) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        app.query_one("#expr", Input).value = "6*7"
-        await pilot.pause()
+        await press_expression(pilot, "6*7")
         await pilot.press("ctrl+y")
         await pilot.pause()
 
@@ -195,17 +187,13 @@ async def test_ans_chains_previous_result(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "2+3")
+        await commit(pilot, "2+3")
+        await press(pilot, "key-ans", "key-multiply", "key-2")
 
-        field = app.query_one("#expr", Input)
-        field.value = "ans*2"
-        await pilot.pause()
-        assert shown(app.query_one("#result", Static)) == "10"
+        assert app.query_one("#calc-result").content == "10"
 
-        await pilot.press("enter")
-        await pilot.pause()
-        assert shown(app.query_one("#result", Static)) == "10"
+        await press(pilot, "key-equals")
+        assert app.query_one("#calc-result").content == "10"
         assert len(app.records) == 2
         assert app.records[-1].expression == "ans*2"
 
@@ -216,14 +204,13 @@ async def test_history_screen_opens_and_closes(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "1+1")
+        await commit(pilot, "1+1")
 
         await pilot.press("f2")
         await pilot.pause()
         assert isinstance(app.screen, HistoryScreen)
-        entries = app.screen.query_one("#history-entries", Static)
-        assert "1+1" in shown(entries)
+        entries = app.screen.query_one("#history-entries")
+        assert "1+1" in str(entries.content)
 
         await pilot.press("escape")
         await pilot.pause()
@@ -236,8 +223,7 @@ async def test_history_clear_flow(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        await commit(app, pilot, "1+1")
+        await commit(pilot, "1+1")
 
         await pilot.press("f2")
         await pilot.pause()
@@ -260,7 +246,6 @@ async def test_help_screen_opens_and_closes(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
         await pilot.press("f1")
         await pilot.pause()
         assert isinstance(app.screen, HelpScreen)
@@ -276,7 +261,6 @@ async def test_settings_are_saved_and_used(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
         await pilot.press("f3")
         await pilot.pause()
         screen = app.screen
@@ -293,11 +277,9 @@ async def test_settings_are_saved_and_used(tmp_path: Path) -> None:
         assert app.settings.precision == 2
         assert app.settings.thousands is False
         assert (tmp_path / "config.json").exists()
-        await open_standard(app, pilot)
 
-        app.query_one("#expr", Input).value = "1/3"
-        await pilot.pause()
-        assert shown(app.query_one("#result", Static)) == "0,33"
+        await commit(pilot, "1/3")
+        assert app.query_one("#calc-result").content == "0,33"
 
 
 @pytest.mark.asyncio
@@ -306,7 +288,6 @@ async def test_settings_angle_mode(tmp_path: Path) -> None:
 
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
         await pilot.press("f3")
         await pilot.pause()
         screen = app.screen
@@ -320,35 +301,6 @@ async def test_settings_angle_mode(tmp_path: Path) -> None:
         await pilot.pause()
 
         assert app.settings.angle == "rad"
-        await open_standard(app, pilot)
-
-        app.query_one("#expr", Input).value = "sin(pi/2)"
-        await pilot.pause()
-        assert shown(app.query_one("#result", Static)) == "1"
-
-
-@pytest.mark.asyncio
-async def test_compact_mode_toggles_chrome(tmp_path: Path) -> None:
-    app = HitungApp(data_dir=tmp_path)
-
-    async with app.run_test(size=(100, 30)) as pilot:
-        await pilot.pause()
-        await open_standard(app, pilot)
-        await pilot.press("f4")
-        await pilot.pause()
-
-        assert app.query_one("#topbar").display is False
-        assert app.query_one("#history-panel").display is False
-        assert app.query_one("#footer").display is False
-        assert app.query_one("#compact-hint", Static).display is True
-
-        await pilot.press("f4")
-        await pilot.pause()
-
-        assert app.query_one("#topbar").display is True
-        assert app.query_one("#history-panel").display is True
-        assert app.query_one("#footer").display is True
-        assert app.query_one("#compact-hint", Static).display is False
 
 
 @pytest.mark.asyncio
@@ -357,9 +309,8 @@ async def test_narrow_terminal_hides_side_panel(tmp_path: Path) -> None:
 
     async with app.run_test(size=(80, 24)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        assert app.query_one("#body").display is True
-        assert app.query_one("#history-panel").display is False
+        assert app.query_one("#sidebar").display is False
+        assert app.query_one("#calc-display").display is True
 
 
 @pytest.mark.asyncio
@@ -368,20 +319,19 @@ async def test_too_small_terminal_and_resize(tmp_path: Path) -> None:
 
     async with app.run_test(size=(50, 15)) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        assert app.query_one("#too-small", Static).display is True
-        assert app.query_one("#body").display is False
+        assert app.query_one("#too-small").display is True
+        assert app.query_one("#shell").display is False
 
         await pilot.resize_terminal(100, 30)
         await pilot.pause()
-        assert app.query_one("#too-small", Static).display is False
-        assert app.query_one("#body").display is True
-        assert app.query_one("#history-panel").display is True
+        assert app.query_one("#too-small").display is False
+        assert app.query_one("#shell").display is True
+        assert app.query_one("#sidebar").display is True
 
         await pilot.resize_terminal(50, 15)
         await pilot.pause()
-        assert app.query_one("#too-small", Static).display is True
-        assert app.query_one("#body").display is False
+        assert app.query_one("#too-small").display is True
+        assert app.query_one("#shell").display is False
 
 
 @pytest.mark.parametrize("size", [(60, 18), (100, 30), (140, 40)])
@@ -394,26 +344,12 @@ async def test_layout_at_supported_sizes(
 
     async with app.run_test(size=size) as pilot:
         await pilot.pause()
-        await open_standard(app, pilot)
-        assert app.query_one("#body").display is True
-        assert app.query_one("#too-small", Static).display is False
+        assert app.query_one("#shell").display is True
+        assert app.query_one("#too-small").display is False
 
-        card = app.query_one("#calc-card")
-        assert card.region.width <= size[0]
-        assert card.region.height <= size[1]
-
-
-@pytest.mark.asyncio
-async def test_topbar_counts_today(tmp_path: Path) -> None:
-    app = HitungApp(data_dir=tmp_path)
-
-    async with app.run_test(size=(100, 30)) as pilot:
-        await pilot.pause()
-        await open_standard(app, pilot)
-        assert "belum ada" in shown(app.query_one("#today", Static))
-
-        await commit(app, pilot, "4*4")
-        assert "1 hitungan" in shown(app.query_one("#today", Static))
+        tool = app.query_one("#tool-standard")
+        assert tool.region.width <= size[0]
+        assert tool.region.height <= size[1]
 
 
 def test_history_survives_restart(tmp_path: Path) -> None:

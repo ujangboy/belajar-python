@@ -76,15 +76,16 @@ SCIENTIFIC_KEYS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+class KeyPressed(Message):
+    """Tombol keypad ditekan. ``key`` adalah button_id (mis. ``key-7``)."""
+
+    def __init__(self, key: str) -> None:
+        super().__init__()
+        self.key = key
+
+
 class ScientificKeypad(Vertical):
     """Grid tombol; setiap tekan memancarkan ``KeyPressed`` ke induknya."""
-
-    class KeyPressed(Message):
-        """Tombol keypad ditekan. ``key`` adalah button_id (mis. ``key-7``)."""
-
-        def __init__(self, key: str) -> None:
-            super().__init__()
-            self.key = key
 
     KEYS: tuple[tuple[str, str, str], ...] = ()
 
@@ -111,4 +112,4 @@ class ScientificKeypad(Vertical):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id:
-            self.post_message(self.KeyPressed(event.button.id))
+            self.post_message(KeyPressed(event.button.id))

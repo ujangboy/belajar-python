@@ -399,11 +399,7 @@ Button.-style-default:hover {
     height: 100%;
 }
 
-/* display tombol: terpasang di StandardTool sejak Task 3, aktif di Task 4 */
-#calc-display {
-    display: none;
-}
-
+/* display kalkulator standar (Task 4) */
 CalculatorDisplay {
     height: auto;
     padding: 1 2;
