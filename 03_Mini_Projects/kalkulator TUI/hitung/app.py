@@ -189,6 +189,7 @@ class HitungApp(App[None]):
             return
         try:
             dash.refresh_recent()
+            dash.refresh_favorites()
         except Exception:
             pass
 
