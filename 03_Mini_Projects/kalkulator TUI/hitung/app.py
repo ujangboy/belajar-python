@@ -29,6 +29,7 @@ from .widgets.electrical_tool import ElectricalTool
 from .widgets.finance_tool import FinanceTool
 from .widgets.math_tool import MathTool
 from .widgets.percentage_tool import PercentageTool
+from .widgets.tip_tool import TipTool
 from .widgets.scientific_tool import ScientificTool
 from .widgets.sidebar import Sidebar
 from .widgets.standard_tool import StandardTool
@@ -101,6 +102,7 @@ class HitungApp(App[None]):
                 yield ScientificTool(id="tool-scientific")
                 yield ConverterTool(id="tool-converter")
                 yield PercentageTool(id="tool-percentage")
+                yield TipTool(id="tool-tip")
                 yield DateTool(id="tool-date")
                 yield FinanceTool(id="tool-finance")
                 yield MathTool(id="tool-math")

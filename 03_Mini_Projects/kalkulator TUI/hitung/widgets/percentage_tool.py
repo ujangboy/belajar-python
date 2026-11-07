@@ -1,86 +1,128 @@
-﻿"""Tool persentase sehari-hari."""
+﻿"""Kalkulator persentase berbasis mode tombol."""
 
 from __future__ import annotations
 
-from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
-from textual.widgets import Button, Input, Label, Select, Static
+from datetime import datetime
 
-from ..engines.percentage_engine import discount_price, percent_change, percent_of, tax_amount, tip_amount, what_percent
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Input, Label, Static
+
+from ..engines.percentage_engine import (
+    discount_price,
+    percent_change,
+    percent_of,
+    tax_amount,
+)
 from ..engines.util import EngineError
 from ..format import format_number
 from ..history import HistoryRecord
-from datetime import datetime
 
-MODES = [
+MODES = (
     ("X% dari Y", "of"),
-    ("X adalah berapa % dari Y", "what"),
-    ("Perubahan % (awal -> baru)", "change"),
+    ("Perubahan %", "change"),
     ("Diskon", "discount"),
     ("Pajak", "tax"),
-    ("Tip / bagi orang", "tip"),
-]
+)
 
 
 class PercentageTool(Vertical):
-    DEFAULT_CSS = "PercentageTool { height:1fr; padding:1 2; } #pct-title{color:$primary;text-style:bold;} .row{height:auto; margin-top:1;} .out{border:round $border; background:$surface; padding:1; margin-top:1; height:auto;}"
+    """Empat mode persentase dengan input nilai dan satu tombol Hitung."""
 
-    BINDINGS = [Binding("escape", "go", "Dashboard", show=False)]
+    DEFAULT_CSS = """
+    PercentageTool { height: 1fr; padding: 1 2; }
+    """
+
+    def __init__(self, *, id: str | None = None) -> None:
+        super().__init__(id=id)
+        self.mode = "discount"
+
+    @property
+    def host(self):
+        return self.app
 
     def compose(self) -> ComposeResult:
-        yield Static("Persentase & Sehari-hari", id="pct-title")
-        yield Label("Mode")
-        yield Select(MODES, value="of", allow_blank=False, id="pct-mode")
-        with VerticalScroll():
-            yield Label("Nilai A / persen / awal / harga / tagihan", classes="row")
-            yield Input("100", id="pct-a")
-            yield Label("Nilai B / total / baru / persen / orang (untuk tip)", classes="row")
-            yield Input("10", id="pct-b")
-            yield Label("Orang (khusus tip, opsional)", classes="row")
-            yield Input("1", id="pct-c")
-            with Horizontal(classes="row"):
-                yield Button("Hitung", id="pct-run", variant="primary")
-                yield Button("Dashboard", id="pct-home")
-            yield Static("", id="pct-out", classes="out")
+        yield Static("Persentase", id="pct-title")
+        with Horizontal(id="pct-modes"):
+            for label, mode in MODES:
+                yield Button(label, id=f"pct-mode-{mode}", classes="pct-mode")
+        yield Label("Nilai / harga")
+        yield Input("100", id="pct-price")
+        yield Label("Persen / nilai baru")
+        yield Input("10", id="pct-percent")
+        yield Button("Hitung", id="pct-run", variant="primary")
+        yield Static("", id="pct-out", classes="out")
 
-    def _fmt(self, v: float) -> str:
-        s = self.app.settings
-        return format_number(v, precision=s.precision, thousands=s.thousands, number_format=getattr(s, "number_format", "id"))
+    def on_mount(self) -> None:
+        self._sync_modes()
 
-    def _num(self, wid: str) -> float:
-        return float(self.query_one(f"#{wid}", Input).value.strip().replace(",", "."))
+    def _sync_modes(self) -> None:
+        for button in self.query(Button):
+            button.set_class(button.id == f"pct-mode-{self.mode}", "-active")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "pct-home":
-            self.app.action_go_dashboard(); return
-        if event.button.id != "pct-run":
-            return
+    def _fmt(self, value: float) -> str:
+        settings = self.host.settings
+        return format_number(
+            value,
+            precision=settings.precision,
+            thousands=settings.thousands,
+            number_format=getattr(settings, "number_format", "id"),
+        )
+
+    def _num(self, widget_id: str) -> float:
+        return float(
+            self.query_one(f"#{widget_id}", Input).value.strip().replace(",", ".")
+        )
+
+    def calculate(self) -> None:
         out = self.query_one("#pct-out", Static)
         try:
-            mode = str(self.query_one("#pct-mode", Select).value)
-            a, b = self._num("pct-a"), self._num("pct-b")
-            text = ""
-            val = 0.0
-            if mode == "of":
-                val = percent_of(a, b); text = f"{self._fmt(a)}% dari {self._fmt(b)} = {self._fmt(val)}"
-            elif mode == "what":
-                val = what_percent(a, b); text = f"{self._fmt(a)} adalah {self._fmt(val)}% dari {self._fmt(b)}"
-            elif mode == "change":
-                val = percent_change(a, b); text = f"Perubahan: {self._fmt(val)}%"
-            elif mode == "discount":
-                amt, final = discount_price(a, b); val = final; text = f"Diskon: {self._fmt(amt)} · Harga akhir: {self._fmt(final)}"
-            elif mode == "tax":
-                amt, final = tax_amount(a, b); val = final; text = f"Pajak: {self._fmt(amt)} · Total: {self._fmt(final)}"
-            elif mode == "tip":
-                c = self._num("pct-c")
-                amt, total, per = tip_amount(a, b, int(c)); val = total
-                text = f"Tip: {self._fmt(amt)} · Total: {self._fmt(total)} · Per orang: {self._fmt(per)}"
-            out.update(text)
-            rec = HistoryRecord(at=datetime.now().astimezone(), expression=f"percentage:{mode} {a},{b}", result=self._fmt(val), value=float(val), category="percentage")
-            self.app.storage.append_history(rec); self.app.records.append(rec); self.app.refresh_dashboard_recent()
-        except (EngineError, ValueError) as e:
-            out.update(f"Error: {e}")
+            price = self._num("pct-price")
+            percent = self._num("pct-percent")
+            if self.mode == "of":
+                value = percent_of(percent, price)
+                text = f"{self._fmt(percent)}% dari {self._fmt(price)} = {self._fmt(value)}"
+            elif self.mode == "change":
+                value = percent_change(price, percent)
+                text = f"Perubahan: {self._fmt(value)}%"
+            elif self.mode == "discount":
+                amount, value = discount_price(price, percent)
+                text = (
+                    f"Diskon {self._fmt(percent)}% = {self._fmt(amount)}"
+                    f" · Harga akhir: {self._fmt(value)}"
+                )
+            else:
+                amount, value = tax_amount(price, percent)
+                text = (
+                    f"Pajak {self._fmt(percent)}% = {self._fmt(amount)}"
+                    f" · Total: {self._fmt(value)}"
+                )
+        except (EngineError, ValueError) as error:
+            out.update(f"Error: {error}")
+            return
+        out.update(text)
+        self._save(value)
 
-    def action_go(self) -> None:
-        self.app.action_go_dashboard()
+    def _save(self, value: float) -> None:
+        record = HistoryRecord(
+            at=datetime.now().astimezone(),
+            expression=f"percentage:{self.mode}",
+            result=self._fmt(value),
+            value=value,
+            category="percentage",
+        )
+        try:
+            self.host.storage.append_history(record)
+        except OSError as error:
+            self.app.log.error(f"Gagal menyimpan riwayat: {error}")
+        self.host.records.append(record)
+        self.host.refresh_dashboard_recent()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        button_id = event.button.id or ""
+        if button_id.startswith("pct-mode-"):
+            self.mode = button_id.removeprefix("pct-mode-")
+            self._sync_modes()
+            return
+        if button_id == "pct-run":
+            self.calculate()

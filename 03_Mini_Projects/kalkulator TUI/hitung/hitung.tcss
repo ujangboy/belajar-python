@@ -532,3 +532,93 @@ NumericKeypad {
 #conv-key-equals {
     column-span: 4;
 }
+
+/* ---------- persentase & tip (Task 8) ---------- */
+#pct-title,
+#tip-title {
+    color: $primary;
+    text-style: bold;
+    height: 1;
+}
+
+#pct-modes,
+#tip-quick,
+#tip-people-row {
+    height: auto;
+    layout: horizontal;
+    margin: 1 0;
+}
+
+.pct-mode,
+.tip-quick {
+    width: 1fr;
+    min-width: 0;
+    height: 3;
+    margin-right: 1;
+    border: round $border;
+    background: $surface;
+}
+
+.pct-mode:hover,
+.pct-mode.-active,
+.tip-quick:hover,
+.tip-quick.-active {
+    border: round $primary;
+    color: $primary;
+}
+
+#pct-price,
+#pct-percent,
+#tip-bill,
+#tip-percent {
+    width: 100%;
+}
+
+#pct-out {
+    height: auto;
+    min-height: 3;
+    margin-top: 1;
+    padding: 1 2;
+    border: round $border;
+    background: $surface;
+    color: #6FD3A8;
+}
+
+#tip-people-minus,
+#tip-people-plus {
+    width: 5;
+    min-width: 5;
+    height: 3;
+}
+
+#tip-people {
+    width: 1fr;
+    height: 3;
+    margin: 0 1;
+}
+
+#tip-results {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 1 1;
+    height: auto;
+    margin-top: 1;
+}
+
+.tip-result {
+    height: auto;
+    padding: 1 2;
+    border: round $border;
+    background: $surface;
+}
+
+.tip-label {
+    height: 1;
+    color: $text-muted;
+}
+
+.tip-value {
+    height: 1;
+    color: #6FD3A8;
+    text-style: bold;
+}
