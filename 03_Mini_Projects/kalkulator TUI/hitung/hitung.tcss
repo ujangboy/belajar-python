@@ -449,3 +449,86 @@ ScientificKeypad.cols-7 {
     background: $surface;
     border: round $primary;
 }
+
+/* ---------- konverter unit (Task 7) ---------- */
+ConverterTool {
+    height: 1fr;
+    padding: 0 1;
+    overflow-y: auto;
+}
+
+ConverterTabs {
+    height: auto;
+    layout: horizontal;
+    padding: 0 0 1 0;
+}
+
+ConverterTabs .tab {
+    width: auto;
+    min-width: 0;
+    height: 3;
+    margin: 0 1 0 0;
+    padding: 0 1;
+    border: round $border;
+    background: $surface;
+}
+
+ConverterTabs .tab.-active {
+    border: round $primary;
+    color: $primary;
+    text-style: bold;
+}
+
+#conv-panels {
+    height: auto;
+    layout: horizontal;
+}
+
+UnitSelector {
+    width: 1fr;
+    height: auto;
+    padding: 1 2;
+    border: round $border;
+    background: $surface;
+}
+
+UnitSelector:focus {
+    border: round $primary;
+}
+
+.unit-title {
+    height: 1;
+    color: $text-muted;
+}
+
+.unit-value {
+    height: 2;
+    color: #6FD3A8;
+    text-style: bold;
+    content-align: right middle;
+}
+
+#conv-swap {
+    width: 5;
+    min-width: 5;
+    height: 3;
+    margin: 3 1 0 1;
+}
+
+#conv-result {
+    height: 2;
+    padding: 0 1;
+    color: $text;
+}
+
+NumericKeypad {
+    height: auto;
+    layout: grid;
+    grid-size: 4;
+    grid-gutter: 0 1;
+    padding: 1;
+}
+
+#conv-key-equals {
+    column-span: 4;
+}

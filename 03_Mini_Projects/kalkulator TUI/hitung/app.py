@@ -10,7 +10,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.css.query import NoMatches
 from textual.events import Resize
-from textual.widgets import ContentSwitcher, Input, Static
+from textual.widgets import ContentSwitcher, Static
 
 from .config import Settings
 from .history import HistoryRecord
@@ -174,7 +174,7 @@ class HitungApp(App[None]):
                 pass
         if self._active_tool == "converter":
             try:
-                self.query_one("#tool-converter", ConverterTool).query_one("#conv-value", Input).focus()
+                self.query_one("#tool-converter", ConverterTool).focus_default()
             except NoMatches:
                 pass
         if self._active_tool == "dashboard":

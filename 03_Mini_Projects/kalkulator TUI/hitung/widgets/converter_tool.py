@@ -1,221 +1,237 @@
-﻿"""Widget konverter unit generik (UI)."""
+"""Konverter unit berbasis tombol."""
 
 from __future__ import annotations
 
-from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
-from textual.widgets import Button, Input, Label, Select, Static, Switch
+from datetime import datetime
+from decimal import Decimal
 
-from ..data.units import CategoryDef, list_categories
-from ..engines.conversion_engine import ConversionError, convert_all, convert_value
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Select, Static
+
+from ..data.units import CategoryDef, get_category, list_categories
+from ..engines.conversion_engine import ConversionError, convert_value
 from ..format import format_number
 from ..history import HistoryRecord
-from datetime import datetime
+from .converter_tabs import ConverterTabs
+from .numeric_keypad import NumericKey, NumericKeypad
+from .unit_selector import UnitSelector
+
+
+def _plain(value: float) -> str:
+    return format(Decimal(repr(value)).normalize(), "f")
 
 
 class ConverterTool(Vertical):
     DEFAULT_CSS = """
-    ConverterTool { height: 1fr; padding: 1 2; layout: vertical; }
-    #conv-title { color: $primary; text-style: bold; }
-    #conv-note { color: $text-muted; height: auto; }
-    #conv-form { height: auto; layout: grid; grid-size: 2; grid-gutter: 1 2; margin-top: 1; }
-    .conv-field { height: auto; }
-    #conv-actions { height: auto; layout: horizontal; margin-top: 1; }
-    #conv-actions Button { margin-right: 1; }
-    #conv-result { margin-top: 1; border: round $border; background: $surface; padding: 1 2; height: auto; }
-    #conv-all-title { margin-top: 1; color: $text-muted; text-style: bold; }
-    #conv-all { height: 1fr; border: round $border; background: $panel; padding: 1; }
-    #conv-digital-row { height: auto; layout: horizontal; margin-top: 1; }
-    #conv-digital-row Label { width: auto; margin-right: 1; color: $text-muted; }
+    ConverterTool { height: 1fr; layout: vertical; padding: 0 1; }
     """
-
-    BINDINGS = [
-        Binding("escape", "go_dashboard", "Dashboard", show=False),
-    ]
 
     def __init__(self, *, id: str | None = None) -> None:
         super().__init__(id=id)
         self._categories = list_categories()
         self._cat: CategoryDef = self._categories[0]
+        self._texts = {"from": "0", "to": ""}
 
     @property
     def host(self):
         return self.app
 
     def compose(self) -> ComposeResult:
-        cat_opts = [(c.title, c.category_id) for c in self._categories]
-        unit_opts = [(u.label, u.unit_id) for u in self._cat.units]
-        default_to = unit_opts[min(1, len(unit_opts) - 1)][1] if unit_opts else None
-        yield Static("Konverter Unit", id="conv-title")
-        yield Static("Pilih kategori, masukkan nilai, lalu konversi. Esc/Ctrl+H kembali.", id="conv-note")
-        with VerticalScroll(id="conv-scroll"):
-            yield Label("Kategori")
-            yield Select(cat_opts, value=self._cat.category_id, allow_blank=False, id="conv-category")
-            with Horizontal(id="conv-digital-row"):
-                yield Label("Penyimpanan data: SI (1000)")
-                yield Switch(value=False, id="conv-iec")
-                yield Label("IEC (1024)")
-            with Container(id="conv-form"):
-                with Vertical(classes="conv-field"):
-                    yield Label("Nilai")
-                    yield Input("1", id="conv-value")
-                with Vertical(classes="conv-field"):
-                    yield Label("Dari")
-                    yield Select(unit_opts, value=unit_opts[0][1], allow_blank=False, id="conv-from")
-                with Vertical(classes="conv-field"):
-                    yield Label("Ke")
-                    yield Select(unit_opts, value=default_to, allow_blank=False, id="conv-to")
-                with Vertical(classes="conv-field"):
-                    yield Label("Aksi")
-                    yield Button("Konversi", id="conv-run", variant="primary")
-            with Horizontal(id="conv-actions"):
-                yield Button("Tukar unit", id="conv-swap")
-                yield Button("Salin hasil", id="conv-copy")
-                yield Button("Dashboard", id="conv-home")
-            yield Static("", id="conv-result")
-            yield Static("SEMUA KONVERSI", id="conv-all-title")
-            yield Static("", id="conv-all")
+        categories = [(category.title, category.category_id) for category in self._categories]
+        units = [(unit.label, unit.unit_id) for unit in self._cat.units]
+        yield ConverterTabs(categories, id="conv-tabs")
+        with Horizontal(id="conv-panels"):
+            source = UnitSelector(
+                "DARI",
+                select_id="conv-from-unit",
+                value_id="conv-from-value",
+                options=units,
+                id="conv-from",
+            )
+            yield source
+            yield Button("?", id="conv-swap")
+            target = UnitSelector(
+                "KE",
+                select_id="conv-to-unit",
+                value_id="conv-to-value",
+                options=units,
+                default_index=1,
+                id="conv-to",
+            )
+            yield target
+        yield Static("", id="conv-result")
+        yield NumericKeypad(prefix="conv-", id="conv-keypad")
 
     def on_mount(self) -> None:
-        self._load_category(self._cat.category_id)
-        self._convert()
-        try:
-            self.query_one("#conv-value", Input).focus()
-        except Exception:
-            pass
+        self._refresh_values()
+
+    def focus_default(self) -> None:
+        self.query_one("#conv-from", UnitSelector).focus()
 
     def _fmt(self, value: float) -> str:
-        s = self.host.settings
-        return format_number(value, precision=s.precision, thousands=s.thousands, number_format=getattr(s, "number_format", "id"))
-
-    def _mode(self) -> str:
-        try:
-            return "iec" if self.query_one("#conv-iec", Switch).value else "si"
-        except Exception:
-            return "si"
-
-    def _load_category(self, category_id: str) -> None:
-        from ..data.units import get_category
-
-        cat = get_category(category_id)
-        if cat is None:
-            return
-        self._cat = cat
-        opts = [(u.label, u.unit_id) for u in cat.units]
-        try:
-            self.query_one("#conv-from", Select).set_options(opts)
-            self.query_one("#conv-to", Select).set_options(opts)
-            self.query_one("#conv-from", Select).value = opts[0][1]
-            self.query_one("#conv-to", Select).value = opts[min(1, len(opts) - 1)][1]
-        except Exception:
-            pass
-        try:
-            row = self.query_one("#conv-digital-row")
-            row.display = cat.kind == "digital"
-        except Exception:
-            pass
-        note = cat.note or ""
-        self.query_one("#conv-note", Static).update(
-            f"Kategori: {cat.title}. {note} Esc/Ctrl+H kembali.".strip()
+        settings = self.host.settings
+        return format_number(
+            value,
+            precision=settings.precision,
+            thousands=settings.thousands,
+            number_format=getattr(settings, "number_format", "id"),
         )
-        self._convert()
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        if event.select.id == "conv-category" and event.value:
-            self._load_category(str(event.value))
-        elif event.select.id in {"conv-from", "conv-to"}:
-            self._convert()
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.id == "conv-value":
-            self._convert()
-
-    def on_switch_changed(self, event: Switch.Changed) -> None:
-        if event.switch.id == "conv-iec":
-            self._convert()
-
-    def _parse_value(self) -> float | None:
-        raw = self.query_one("#conv-value", Input).value.strip().replace(",", ".")
+    def _parse(self, text: str) -> float | None:
+        raw = text.strip().replace(",", ".")
         try:
             return float(raw)
         except ValueError:
             return None
 
-    def _convert(self) -> None:
-        result_box = self.query_one("#conv-result", Static)
-        all_box = self.query_one("#conv-all", Static)
-        value = self._parse_value()
-        if value is None:
-            result_box.update("Nilai tidak valid. Contoh: 12,5")
-            all_box.update("")
-            return
+    def _focused_side(self) -> str:
+        target = self.query_one("#conv-to", UnitSelector)
         try:
-            from_id = str(self.query_one("#conv-from", Select).value)
-            to_id = str(self.query_one("#conv-to", Select).value)
+            if target.has_focus or target.query_one(Select).has_focus:
+                return "to"
         except Exception:
+            pass
+        return "from"
+
+    def _focus_side(self, side: str) -> None:
+        self.query_one(f"#conv-{side}", UnitSelector).focus()
+
+    def _units(self) -> tuple[str, str]:
+        source = self.query_one("#conv-from", UnitSelector).value
+        target = self.query_one("#conv-to", UnitSelector).value
+        return source, target
+
+    def _refresh_values(self) -> None:
+        from_panel = self.query_one("#conv-from", UnitSelector)
+        to_panel = self.query_one("#conv-to", UnitSelector)
+        result = self.query_one("#conv-result", Static)
+        value = self._parse(self._texts["from"])
+        if value is None:
+            from_panel.show_value(self._texts["from"] or "0")
+            to_panel.show_value("")
+            result.update("Nilai tidak valid. Contoh: 12,5")
             return
-        mode = self._mode() if self._cat.kind == "digital" else None
+        source, target = self._units()
         try:
-            out = convert_value(value, from_id, to_id, self._cat.category_id, mode=mode)
-            rows = convert_all(value, from_id, self._cat.category_id, mode=mode)
-        except ConversionError as e:
-            result_box.update(str(e))
-            all_box.update("")
+            out = convert_value(value, source, target, self._cat.category_id)
+        except ConversionError as error:
+            result.update(str(error))
             return
-        self._last_text = f"{self._fmt(value)} {from_id} = {self._fmt(out)} {to_id}"
-        result_box.update(self._last_text)
-        lines = [f"{label:<26} {self._fmt(val)}" for uid, label, val in rows]
-        all_box.update("\n".join(lines))
+        self._texts["to"] = _plain(out)
+        from_panel.show_value(self._fmt(value))
+        to_panel.show_value(self._fmt(out))
+        result.update(f"{self._fmt(value)} {source} = {self._fmt(out)} {target}")
+
+    def _apply_category(self, category: CategoryDef) -> None:
+        self._cat = category
+        units = [(unit.label, unit.unit_id) for unit in category.units]
+        source = self.query_one("#conv-from", UnitSelector)
+        target = self.query_one("#conv-to", UnitSelector)
+        source.set_options(units)
+        target.set_options(units)
+        if len(units) > 1:
+            target.select_unit(units[1][1])
+        self._texts = {"from": "0", "to": ""}
+        self._refresh_values()
+
+    def on_converter_tabs_category_changed(
+        self, event: ConverterTabs.CategoryChanged
+    ) -> None:
+        event.stop()
+        category = get_category(event.category_id)
+        if category is not None:
+            self._apply_category(category)
+
+    def on_unit_selector_unit_changed(self, event: UnitSelector.UnitChanged) -> None:
+        event.stop()
+        self._refresh_values()
+
+    def on_numeric_key(self, event: NumericKey) -> None:
+        event.stop()
+        key = event.key
+        if key == "key-up":
+            self._focus_side("from")
+            return
+        if key == "key-down":
+            self._focus_side("to")
+            return
+        if key == "key-equals":
+            self._save_history()
+            self.host.notify("Konversi disimpan ke riwayat.", timeout=2)
+            return
+
+        side = self._focused_side()
+        text = self._texts[side]
+        if key == "key-clear":
+            text = ""
+        elif key == "key-backspace":
+            text = text[:-1]
+        elif key == "key-sign":
+            text = text[1:] if text.startswith("-") else "-" + text
+        else:
+            insert = self.query_one(NumericKeypad).insert_texts.get(key)
+            if not insert:
+                return
+            if insert == "." and "." in text:
+                return
+            if text == "0" and insert != ".":
+                text = insert
+            else:
+                text += insert
+        self._texts[side] = text
+        if side == "to":
+            self._rebuild_from()
+        self._refresh_values()
+
+    def _rebuild_from(self) -> None:
+        value = self._parse(self._texts["to"])
+        if value is None:
+            return
+        source, target = self._units()
+        try:
+            back = convert_value(value, target, source, self._cat.category_id)
+        except ConversionError:
+            return
+        self._texts["from"] = _plain(back)
 
     def _save_history(self) -> None:
-        value = self._parse_value()
-        if value is None or not getattr(self, "_last_text", None):
+        value = self._parse(self._texts["from"])
+        if value is None:
             return
+        source, target = self._units()
         try:
-            from_id = str(self.query_one("#conv-from", Select).value)
-            to_id = str(self.query_one("#conv-to", Select).value)
-            mode = self._mode() if self._cat.kind == "digital" else None
-            out = convert_value(value, from_id, to_id, self._cat.category_id, mode=mode)
-        except Exception:
+            out = convert_value(value, source, target, self._cat.category_id)
+        except ConversionError:
             return
         record = HistoryRecord(
             at=datetime.now().astimezone(),
-            expression=f"{value} {from_id} -> {to_id} [{self._cat.category_id}]",
+            expression=f"{_plain(value)} {source} -> {target} [{self._cat.category_id}]",
             result=self._fmt(out),
             value=out,
             category=f"converter:{self._cat.category_id}",
-            input_text=str(value),
+            input_text=_plain(value),
             output_text=self._fmt(out),
         )
         try:
             self.host.storage.append_history(record)
-            self.host.records.append(record)
-            self.app.refresh_dashboard_recent()
-        except Exception:
-            pass
+        except OSError as error:
+            self.app.log.error(f"Gagal menyimpan riwayat: {error}")
+            return
+        self.host.records.append(record)
+        self.host.refresh_dashboard_recent()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        bid = event.button.id or ""
-        if bid == "conv-run":
-            self._convert()
-            self._save_history()
-            self.app.notify("Konversi dihitung.", timeout=1)
-        elif bid == "conv-swap":
-            try:
-                f = self.query_one("#conv-from", Select)
-                t = self.query_one("#conv-to", Select)
-                f.value, t.value = t.value, f.value
-            except Exception:
-                pass
-            self._convert()
-        elif bid == "conv-copy":
-            text = getattr(self, "_last_text", "")
-            if text:
-                self.app.copy_to_clipboard(text)
-                self.app.notify("Hasil disalin.", timeout=2)
-        elif bid == "conv-home":
-            self.app.action_go_dashboard()
-
-    def action_go_dashboard(self) -> None:
-        self.app.action_go_dashboard()
+        if event.button.id != "conv-swap":
+            return
+        event.stop()
+        source = self.query_one("#conv-from", UnitSelector)
+        target = self.query_one("#conv-to", UnitSelector)
+        source_unit, target_unit = source.value, target.value
+        source.select_unit(target_unit)
+        target.select_unit(source_unit)
+        self._texts["from"], self._texts["to"] = (
+            self._texts["to"] or "0",
+            self._texts["from"],
+        )
+        self._refresh_values()
