@@ -94,12 +94,15 @@ class ScientificKeypad(Vertical):
         keys: tuple[tuple[str, str, str], ...] | None = None,
         *,
         columns: int = 4,
+        prefix: str = "",
         id: str | None = None,
         classes: str | None = None,
     ) -> None:
         super().__init__(id=id, classes=classes)
         self.keys = tuple(self.KEYS if keys is None else keys)
         self.columns = columns
+        self.prefix = prefix
+        self.add_class(f"cols-{columns}")
 
     @property
     def insert_texts(self) -> dict[str, str]:
@@ -108,8 +111,9 @@ class ScientificKeypad(Vertical):
 
     def compose(self) -> ComposeResult:
         for key_id, label, _insert in self.keys:
-            yield Button(label, id=key_id, classes="key")
+            yield Button(label, id=f"{self.prefix}{key_id}", classes="key")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id:
-            self.post_message(KeyPressed(event.button.id))
+            key = event.button.id.removeprefix(self.prefix)
+            self.post_message(KeyPressed(key))

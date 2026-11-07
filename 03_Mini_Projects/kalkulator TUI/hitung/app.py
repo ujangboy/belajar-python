@@ -169,9 +169,7 @@ class HitungApp(App[None]):
         if self._active_tool == "scientific":
             try:
                 sci = self.query_one("#tool-scientific", ScientificTool)
-                sci._refresh_angle()
-                sci._refresh_preview()
-                sci.query_one("#expr", Input).focus()
+                sci.refresh_display()
             except NoMatches:
                 pass
         if self._active_tool == "converter":
@@ -321,8 +319,7 @@ class HitungApp(App[None]):
                         tool.set_expression(result.expression)
                     else:
                         sci = self.query_one("#tool-scientific", ScientificTool)
-                        sci._set_input(result.expression)
-                        sci._refresh_preview()
+                        sci.set_expression(result.expression)
                 except Exception:
                     pass
             self.notify("Ekspresi dimuat dari riwayat.", timeout=2)
@@ -356,8 +353,7 @@ class HitungApp(App[None]):
             tool.refresh_display()
         try:
             sci = self.query_one("#tool-scientific", ScientificTool)
-            sci._refresh_angle()
-            sci._refresh_preview()
+            sci.refresh_display()
         except Exception:
             pass
         self.notify("Pengaturan disimpan.", timeout=2)
