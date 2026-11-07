@@ -13,8 +13,6 @@ from textual.events import Resize
 from textual.widgets import ContentSwitcher, Static
 
 from .config import Settings
-from .history import HistoryRecord
-from .navigation import default_tools
 from .screens.help_screen import HelpScreen
 from .screens.history_screen import HistoryScreen
 from .screens.search_screen import SearchScreen
@@ -23,11 +21,6 @@ from .storage import Storage
 from .theme import HITUNG_THEME, build_theme
 from .widgets.converter_tool import ConverterTool
 from .widgets.dashboard_tool import DashboardTool
-from .widgets.data_tool import DataTool
-from .widgets.date_tool import DateTool
-from .widgets.electrical_tool import ElectricalTool
-from .widgets.finance_tool import FinanceTool
-from .widgets.math_tool import MathTool
 from .widgets.percentage_tool import PercentageTool
 from .widgets.tip_tool import TipTool
 from .widgets.scientific_tool import ScientificTool
@@ -38,6 +31,10 @@ from .widgets.standard_tool import StandardTool
 SIDEBAR_MIN_WIDTH = 90
 MIN_WIDTH = 60
 MIN_HEIGHT = 18
+
+CONTENT_TOOLS = frozenset(
+    {"dashboard", "standard", "scientific", "converter", "percentage", "tip"}
+)
 
 
 class HitungApp(App[None]):
@@ -50,7 +47,8 @@ class HitungApp(App[None]):
         Binding("ctrl+q", "quit_app", "Keluar", key_display="^Q", priority=True),
         Binding("ctrl+h", "go_dashboard", "Dashboard", key_display="^H", priority=True),
         Binding("ctrl+k", "focus_search", "Cari", key_display="^K", priority=True),
-        Binding("ctrl+d", "toggle_favorite", "Favorit", key_display="^D", priority=True),
+        Binding("ctrl+f", "show_favorites", "Favorit", key_display="^F", priority=True),
+        Binding("ctrl+d", "toggle_favorite", "Tandai favorit", key_display="^D", priority=True),
         Binding("ctrl+1", "open_standard", "Standar", key_display="^1", priority=True),
         Binding("ctrl+2", "open_scientific", "Ilmiah", key_display="^2", priority=True),
         Binding("ctrl+3", "open_converter", "Konverter", key_display="^3", priority=True),
@@ -68,7 +66,6 @@ class HitungApp(App[None]):
         self.storage = Storage(data_dir)
         self.settings = self.storage.load_settings()
         self.records = self.storage.load_history()
-        self.tools = default_tools()
 
         self.ans = 0.0
         self.last_expression: str | None = None
@@ -103,11 +100,6 @@ class HitungApp(App[None]):
                 yield ConverterTool(id="tool-converter")
                 yield PercentageTool(id="tool-percentage")
                 yield TipTool(id="tool-tip")
-                yield DateTool(id="tool-date")
-                yield FinanceTool(id="tool-finance")
-                yield MathTool(id="tool-math")
-                yield DataTool(id="tool-data")
-                yield ElectricalTool(id="tool-electrical")
         yield Static("Terminal terlalu kecil — minimal 60 × 18", id="too-small")
 
     def on_mount(self) -> None:
@@ -138,28 +130,26 @@ class HitungApp(App[None]):
         return len(self.screen_stack) > 1
 
     def open_tool(self, tool_id: str) -> None:
-        valid = {f"tool-{t.tool_id}" for t in self.tools}
-        valid.update(
-            {
-                "tool-standard",
-                "tool-scientific",
-                "tool-converter",
-                "tool-percentage",
-                "tool-date",
-                "tool-finance",
-                "tool-math",
-                "tool-data",
-                "tool-electrical",
-            }
-        )
-        target = f"tool-{tool_id}" if not tool_id.startswith("tool-") else tool_id
-        if target not in valid:
-            target = "tool-standard"
+        tool_id = tool_id.removeprefix("tool-")
+        if tool_id == "history":
+            self.action_show_history()
+            return
+        if tool_id == "settings":
+            self.action_show_settings()
+            return
+        if tool_id == "help":
+            self.action_show_help()
+            return
+        if tool_id == "favorites":
+            tool_id = "dashboard"
+        if tool_id not in CONTENT_TOOLS:
+            tool_id = "standard"
+        target = f"tool-{tool_id}"
         try:
             self.query_one("#tools", ContentSwitcher).current = target
         except NoMatches:
             return
-        self._active_tool = target.removeprefix("tool-")
+        self._active_tool = tool_id
         try:
             self.query_one(Sidebar).set_active(self._active_tool)
         except NoMatches:
@@ -203,6 +193,11 @@ class HitungApp(App[None]):
         if self._modal_open():
             return
         self.open_tool("dashboard")
+
+    def action_show_favorites(self) -> None:
+        if self._modal_open():
+            return
+        self.open_tool("favorites")
 
     def action_focus_search(self) -> None:
         if self._modal_open():

@@ -15,26 +15,28 @@ from pathlib import Path
 from hitung.app import HitungApp
 from hitung.history import HistoryRecord
 from hitung.storage import Storage
+from hitung.widgets.scientific_tool import ScientificTool
+from hitung.widgets.standard_tool import StandardTool
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
 
-# (hari lalu, jam, ekspresi, hasil, nilai)
+# (hari lalu, jam, ekspresi, hasil, nilai, kategori)
 SEED = (
-    (0, 9, "12 + 3 * (4 - 1)", "21", 21.0),
-    (0, 10, "sqrt(144) + 2^3", "20", 20.0),
-    (0, 11, "200 * 15%", "30", 30.0),
-    (1, 15, "sin(30)", "0,5", 0.5),
-    (2, 8, "2^10", "1.024", 1024.0),
-    (3, 20, "ans * 2", "42", 42.0),
-    (6, 7, "1/3", "0,333333", 1 / 3),
+    (0, 9, "12 + 3 * (4 - 1)", "21", 21.0, "standard"),
+    (0, 10, "sqrt(144) + 2^3", "20", 20.0, "scientific"),
+    (0, 11, "200 + 10%", "220", 220.0, "standard"),
+    (1, 15, "sin(30)", "0,5", 0.5, "scientific"),
+    (2, 8, "100 °C -> °F", "212", 212.0, "converter:temperature"),
+    (3, 20, "tip 150 · 15%", "22,5", 22.5, "tip"),
+    (6, 7, "1/3", "0,333333", 1 / 3, "standard"),
 )
 
 
 def seed_history(data_dir: Path) -> None:
     storage = Storage(data_dir)
     now = datetime.now().astimezone().replace(microsecond=0)
-    for days_ago, hour, expression, result, value in SEED:
+    for days_ago, hour, expression, result, value, category in SEED:
         at = (now - timedelta(days=days_ago)).replace(
             hour=hour,
             minute=0,
@@ -46,8 +48,15 @@ def seed_history(data_dir: Path) -> None:
                 expression=expression,
                 result=result,
                 value=value,
+                category=category,
             )
         )
+
+
+async def click(pilot, *ids: str) -> None:
+    for widget_id in ids:
+        await pilot.click(f"#{widget_id}")
+        await pilot.pause()
 
 
 async def capture(
@@ -76,26 +85,66 @@ async def capture(
 
 
 async def main() -> None:
-    await capture("main")
+    async def preview(app, pilot):
+        app.query_one("#tool-standard", StandardTool).set_expression("12 + 3 * (4 - 1)")
 
-    async def typing(app, pilot):
-        app.query_one("#expr").value = "12 + 3 * (4 - 1)"
-
-    await capture("typing", typing)
+    await capture("main", preview)
 
     async def result(app, pilot):
-        app.query_one("#expr").value = "sqrt(144) + 2^3"
-        await pilot.pause()
-        await pilot.press("enter")
+        tool = app.query_one("#tool-standard", StandardTool)
+        tool.set_expression("sqrt(144) + 2^3")
+        tool.calculate()
 
     await capture("result", result)
 
     async def error(app, pilot):
-        app.query_one("#expr").value = "1 / 0"
-        await pilot.pause()
-        await pilot.press("enter")
+        tool = app.query_one("#tool-standard", StandardTool)
+        tool.set_expression("1 / 0")
+        tool.calculate()
 
     await capture("error", error)
+
+    async def dashboard(app, pilot):
+        app.open_tool("dashboard")
+
+    await capture("dashboard", dashboard, seed_data=True)
+
+    async def scientific(app, pilot):
+        app.open_tool("scientific")
+        await pilot.pause()
+        tool = app.query_one("#tool-scientific", ScientificTool)
+        tool.set_expression("sin(30)")
+        tool.calculate()
+
+    await capture("scientific", scientific)
+
+    async def converter(app, pilot):
+        app.open_tool("converter")
+        await pilot.pause()
+        await pilot.click("#tab-temperature")
+        await pilot.pause()
+        await click(pilot, "conv-key-1", "conv-key-0", "conv-key-0")
+
+    await capture("converter", converter)
+
+    async def percentage(app, pilot):
+        app.open_tool("percentage")
+        await pilot.pause()
+        app.query_one("#pct-price").value = "100"
+        app.query_one("#pct-percent").value = "10"
+        await pilot.click("#pct-run")
+
+    await capture("percentage", percentage)
+
+    async def tip(app, pilot):
+        app.open_tool("tip")
+        await pilot.pause()
+        app.query_one("#tip-bill").value = "150"
+        await pilot.click("#tip-15")
+        app.query_one("#tip-people").value = "2"
+        await pilot.click("#tip-calc")
+
+    await capture("tip", tip)
 
     async def history(app, pilot):
         await pilot.press("f2")
@@ -118,11 +167,6 @@ async def main() -> None:
         await pilot.click("#clear")
 
     await capture("confirm", confirm, seed_data=True)
-
-    async def compact(app, pilot):
-        await pilot.press("f4")
-
-    await capture("compact", compact, seed_data=True)
 
     await capture("narrow", None, seed_data=True, size=(80, 24))
     await capture("small", None, size=(50, 15))

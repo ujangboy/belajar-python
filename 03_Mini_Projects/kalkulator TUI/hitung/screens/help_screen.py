@@ -11,18 +11,24 @@ from textual.widgets import Static
 from ..theme import MUTED, PRIMARY, TEXT
 
 KEYS = (
-    ("Enter", "hitung dan simpan ke riwayat"),
-    ("Esc", "bersihkan ekspresi"),
-    ("↑ / ↓", "panggil ekspresi sebelumnya / berikutnya"),
+    ("Tombol", "klik angka/operator; = menghitung dan menyimpan"),
+    ("Esc", "bersihkan entri atau kembali ke dashboard"),
+    ("↑ / ↓", "riwayat ekspresi; di konverter pindah FROM/TO"),
     ("Ctrl+Y", "salin hasil ke clipboard"),
+    ("Ctrl+1/2/3", "kalkulator standar / ilmiah / konverter"),
+    ("Ctrl+H", "dashboard"),
+    ("Ctrl+K", "cari alat"),
+    ("Ctrl+F", "lihat favorit"),
+    ("Ctrl+D", "tandai alat aktif sebagai favorit"),
+    ("F1/F2/F3", "bantuan / riwayat / pengaturan"),
     ("Ctrl+Q", "keluar"),
 )
 
-SHORTCUTS = "F1 bantuan · F2 riwayat · F3 pengaturan · F4 mode ringkas"
+SHORTCUTS = "Semua angka dan fungsi bisa diklik; keyboard tetap bisa dipakai."
 
 FUNCTIONS = (
-    "sqrt  abs  sin  cos  tan  asin  acos  atan\n"
-    "log   ln   exp  floor  ceil  round"
+    "sqrt  cbrt  abs  sin  cos  tan  asin  acos  atan\n"
+    "log   ln   log10  exp  floor  ceil  round  ncr  npr"
 )
 
 CONSTANTS = "pi = 3,14159…   e = 2,71828…   tau = 6,28318…   ans = hasil terakhir"
@@ -42,16 +48,16 @@ class HelpScreen(ModalScreen[None]):
     def _help_text(self) -> Text:
         text = Text()
 
-        text.append("TOMBOL\n", style=f"bold {PRIMARY}")
+        text.append("TOMBOL & PINTASAN\n", style=f"bold {PRIMARY}")
         for key, description in KEYS:
-            text.append(f"{key:<9}", style=f"bold {TEXT}")
+            text.append(f"{key:<11}", style=f"bold {TEXT}")
             text.append(description, style=MUTED)
             text.append("\n")
         text.append(SHORTCUTS, style=MUTED)
 
         text.append("\nOPERATOR\n", style=f"bold {PRIMARY}")
         text.append(
-            "+  -  *  /  ^  %  !  (  )\n"
+            "+  −  ×  ÷  ^  %  !  (  )\n"
             "Desimal boleh koma atau titik (1,5 atau 1.5).",
             style=MUTED,
         )
@@ -64,10 +70,11 @@ class HelpScreen(ModalScreen[None]):
 
         text.append("\nCONTOH\n", style=f"bold {PRIMARY}")
         text.append(
-            "12 + 3 * (4 - 1)  = 21\n"
-            "sqrt(144) + 2^3   = 20\n"
-            "200 * 15%         = 30\n"
-            "sin(30)           = 0,5  (mode derajat)",
+            "12 × 3 + (4 − 1)  = 35\n"
+            "200 + 10%         = 220  (persen kontekstual)\n"
+            "sin 30            = 0,5  (mode derajat)\n"
+            "100 °C → °F       = 212  (tab Temperature)\n"
+            "Rp150.000 · 15%   = tip Rp22.500",
             style=MUTED,
         )
         return text

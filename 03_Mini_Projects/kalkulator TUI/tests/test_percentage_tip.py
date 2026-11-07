@@ -1,4 +1,10 @@
 from hitung.app import HitungApp
+from hitung.engines.percentage_engine import percent_change, tax_amount
+
+
+def test_percentage_engine_modes():
+    assert percent_change(100, 120) == 20
+    assert tax_amount(100, 11) == (11, 111)
 
 
 async def test_percentage_discount(tmp_path):

@@ -1,5 +1,4 @@
 from hitung.theme import build_theme, ACCENTS
-from hitung.widgets.topbar import TopBar
 
 
 def test_dark_theme_colors():
@@ -22,9 +21,3 @@ def test_default_accent_is_blue_and_bogus_falls_back():
     assert build_theme().primary == ACCENTS["blue"]
     assert build_theme(accent="bogus").primary == ACCENTS["blue"]
     assert build_theme(mode="light").background == "#F4F7FB"
-
-
-def test_topbar_brand():
-    parts = {static.id: static.content for static in TopBar().compose()}
-    assert parts["brand"] == "KALKULATOR PRO"
-    assert parts["subtitle"] == "Smart Calculation in Your Terminal"

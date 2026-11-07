@@ -60,7 +60,10 @@ class NumericKeypad(Vertical):
 
     def compose(self) -> ComposeResult:
         for key_id, label, _insert in self.keys:
-            yield Button(label, id=f"{self.prefix}{key_id}", classes="key")
+            button = Button(label, id=f"{self.prefix}{key_id}", classes="key")
+            # Tanpa animasi tekan: klik cepat berulang (mis. "100") tidak boleh hilang.
+            button.active_effect_duration = 0
+            yield button
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id:

@@ -334,6 +334,54 @@ async def test_too_small_terminal_and_resize(tmp_path: Path) -> None:
         assert app.query_one("#shell").display is False
 
 
+@pytest.mark.asyncio
+async def test_sidebar_and_global_shortcuts(tmp_path: Path) -> None:
+    app = HitungApp(data_dir=tmp_path)
+
+    async with app.run_test(size=(120, 40)) as pilot:
+        await pilot.pause()
+
+        await pilot.click("#side-converter")
+        await pilot.pause()
+        assert app._active_tool == "converter"
+
+        await pilot.click("#side-dashboard")
+        await pilot.pause()
+        assert app._active_tool == "dashboard"
+
+        await pilot.press("ctrl+2")
+        await pilot.pause()
+        assert app._active_tool == "scientific"
+
+        await pilot.press("ctrl+f")
+        await pilot.pause()
+        assert app._active_tool == "dashboard"
+
+
+@pytest.mark.asyncio
+async def test_sidebar_modal_tools(tmp_path: Path) -> None:
+    app = HitungApp(data_dir=tmp_path)
+
+    async with app.run_test(size=(120, 40)) as pilot:
+        await pilot.pause()
+
+        await pilot.click("#side-history")
+        await pilot.pause()
+        assert isinstance(app.screen, HistoryScreen)
+        await pilot.press("escape")
+        await pilot.pause()
+
+        await pilot.click("#side-settings")
+        await pilot.pause()
+        assert isinstance(app.screen, SettingsScreen)
+        await pilot.press("escape")
+        await pilot.pause()
+
+        await pilot.click("#side-help")
+        await pilot.pause()
+        assert isinstance(app.screen, HelpScreen)
+
+
 @pytest.mark.parametrize("size", [(60, 18), (100, 30), (140, 40)])
 @pytest.mark.asyncio
 async def test_layout_at_supported_sizes(

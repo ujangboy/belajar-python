@@ -58,7 +58,8 @@ class SettingsScreen(ModalScreen[Settings | None]):
                     yield Switch(value=self._settings.sound, id="sound")
 
             yield Static(
-                "Tema/aksen/format angka diterapkan global. Favorit tersimpan di config.",
+                "Tema, aksen, dan format angka langsung dipakai. "
+                "Tekan Ctrl+D di alat mana pun untuk menambah/menghapus favorit.",
                 id="settings-hint",
             )
 

@@ -4,10 +4,7 @@ import pytest
 
 from hitung.engine import CalcError, evaluate
 from hitung.engines.conversion_engine import ConversionError, convert_value
-from hitung.engines.data_engine import bitwise, number_bases
-from hitung.engines.electrical_engine import ohms_law
-from hitung.engines.finance_engine import loan_payment
-from hitung.engines.percentage_engine import what_percent
+from hitung.engines.percentage_engine import discount_price, what_percent
 from hitung.engines.util import EngineError
 from hitung.format import format_number
 
@@ -23,17 +20,10 @@ def test_format_plain_and_small_values():
     assert format_number(0.0000001, precision=2)  # should not crash (scientific fallback)
 
 
-def test_conversion_and_ohm_errors():
+def test_conversion_and_percentage_errors():
     with pytest.raises(ConversionError):
         convert_value(1, "m", "kg", "length")
     with pytest.raises(EngineError):
-        ohms_law(voltage=1)  # needs exactly 2
-    with pytest.raises(EngineError):
         what_percent(1, 0)
-
-
-def test_data_and_finance_edge_cases():
-    assert number_bases("FF", 16)["dec"] == "255"
-    assert bitwise(1, "SHL", 1)["dec"] == 2
-    r = loan_payment(1000, 0, 10)
-    assert float(r["payment"]) == pytest.approx(100.0)
+    with pytest.raises(EngineError):
+        discount_price(-1, 10)

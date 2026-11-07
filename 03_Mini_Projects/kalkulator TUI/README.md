@@ -1,14 +1,14 @@
-# HITUNG — Kalkulator TUI untuk Terminal
+# KALKULATOR PRO — Kalkulator TUI untuk Terminal
 
 Kalkulator berbasis terminal (TUI), 100% Python, dibangun dengan
-[Textual](https://textual.textualize.io/). Ketik ekspresi, hasilnya muncul
-langsung saat mengetik, lalu `Enter` menyimpannya ke riwayat. Satu kartu,
-satu panel riwayat, tanpa mouse, tanpa jaringan.
+[Textual](https://textual.textualize.io/). Versi 2.0 memakai **tombol**:
+pilih alat di sidebar, klik angka dan operator, hasil tampil besar di
+layar. Keyboard tetap bisa dipakai. Tanpa jaringan, tanpa akun.
 
 **Paling cepat:** jalankan `.\run.cmd` dari folder project — satu baris,
 tanpa perlu aktivasi venv.
 
-![Tampilan utama HITUNG](docs/main.svg)
+![Tampilan utama KALKULATOR PRO](docs/main.svg)
 
 ## Install & jalankan (dari GitHub)
 
@@ -34,24 +34,45 @@ Nama folder `kalkulator TUI` mengandung spasi, jadi di URL ditulis
 `kalkulator%20TUI`. Setelah terpasang lewat pip, aplikasi bisa dibuka dari
 folder mana pun dengan perintah `hitung` atau `kalkulator`.
 
+## Alat yang tersedia
+
+| Alat | Isi |
+| --- | --- |
+| **Dashboard** | Akses cepat, riwayat 5 terakhir, favorit, pencarian alat |
+| **Kalkulator Standar** | Tombol `0–9`, `+ − × ÷`, `%`, `±`, `C`, `⌫`, `=` |
+| **Kalkulator Ilmiah** | `sin cos tan`, `ln log`, `√`, `x²`, `xʸ`, `1/x`, `π`, `e`, `!`, `DEG/RAD` |
+| **Konverter Unit** | 8 kategori: luas, panjang, suhu, volume, massa, data, kecepatan, waktu |
+| **Persentase** | X% dari Y, perubahan %, diskon, pajak |
+| **Tip** | Tagihan, persen cepat 5/10/15/20, jumlah orang, hasil per orang |
+| **Riwayat** | Ringkasan hari ini/7 hari, grafik batang, hapus semua |
+| **Favorit** | Alat yang ditandai dengan `Ctrl+D` |
+| **Pengaturan** | Presisi, ribuan, mode sudut, tema, aksen, format angka, suara |
+| **Bantuan** | Peta tombol, operator, fungsi, dan contoh |
+
+Setiap alat hidup di dalam satu layar. Sidebar di kiri dipakai untuk pindah
+alat; di terminal sempit (< 90 kolom) sidebar disembunyikan dan navigasi
+lewat pintasan keyboard atau dashboard.
+
+![Dashboard](docs/dashboard.svg)
+
 ## Fitur
 
 - Mesin hitung sendiri (tanpa `eval`): `+ - * / ^ % !` dan tanda kurung.
-- Fungsi `sqrt`, `abs`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `log`,
-  `ln`, `exp`, `floor`, `ceil`, `round`.
+- Fungsi `sqrt`, `cbrt`, `abs`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`,
+  `log`, `ln`, `log10`, `exp`, `floor`, `ceil`, `round`, `ncr`, `npr`.
 - Konstanta `pi`, `e`, `tau`, dan variabel `ans` (hasil terakhir).
-- **Preview langsung:** hasil sementara muncul saat mengetik; `Enter`
-  menyimpannya sebagai hasil final.
-- Riwayat hitungan tersimpan lokal: panel 5 terakhir di samping kartu, dan
-  layar riwayat lengkap dengan ringkasan + grafik 7 hari.
-- `↑` / `↓` memanggil ulang ekspresi sebelumnya, seperti riwayat shell.
+- Konverter unit dengan hasil langsung saat angka diketik, tombol swap,
+  dan riwayat per kategori.
+- Persentase dan tip dengan output deskriptif (hemat, total, per orang).
+- Riwayat persisten: 5 terakhir di dashboard, layar riwayat lengkap dengan
+  ringkasan + grafik 7 hari.
+- `↑` / `↓` memanggil ulang ekspresi sebelumnya di kalkulator.
 - Salin hasil ke clipboard dengan `Ctrl+Y`.
 - Format angka Indonesia: titik ribuan, koma desimal (`1.234.567,5`).
 - Presisi 0–10 desimal, notasi ilmiah otomatis untuk angka ekstrem.
 - Mode sudut derajat/radian dan bunyi bel (bisa dimatikan).
-- Mode ringkas (`F4`) untuk layar sempit atau sekadar fokus.
+- Favorit per alat, tersimpan di `config.json`.
 - Terminal minimum 60 × 18; ada pesan ramah kalau terlalu kecil.
-- Tanpa jaringan, tanpa akun. Semua data lokal.
 
 ## Jalankan dengan satu baris
 
@@ -82,15 +103,6 @@ hitung
 
 atau `kalkulator`. Tidak perlu `cd` dan tidak perlu aktivasi venv.
 
-Di Windows ada juga cara tanpa pip: buat file `hitung.cmd` kecil di folder
-yang ada di PATH (mis.
-`C:\Users\<kamu>\AppData\Local\Programs\Python\Python313\Scripts\`), isinya:
-
-```bat
-@echo off
-call "D:\path\ke\kalkulator TUI\run.cmd" %*
-```
-
 ## Prasyarat
 
 - Python 3.11 atau lebih baru (dites di 3.13).
@@ -112,11 +124,8 @@ otomatis pada run pertama. Untuk setup manual, dari folder project ini:
 
 # Install dependency runtime
 pip install -r requirements.txt
-```
 
-Untuk kebutuhan development (test dan tool screenshot):
-
-```powershell
+# Kebutuhan development
 pip install -r requirements-dev.txt
 ```
 
@@ -125,15 +134,9 @@ Opsional: pasang project ini sebagai package supaya ada perintah global
 
 ```powershell
 pip install -e .
-
-# lalu dari folder mana pun:
-hitung
 ```
 
 ## Cara lain menjalankan
-
-Selain `.\run.cmd`, aplikasi juga bisa dijalankan dengan cara berikut
-(semua dari folder project):
 
 | Cara | Perintah |
 | --- | --- |
@@ -149,28 +152,43 @@ dipakai bukan Python yang punya Textual. Paling mudah pakai `.\run.cmd`.
 
 | Tombol | Aksi |
 | --- | --- |
-| *ketik* | langsung menulis ekspresi di input |
-| `Enter` | hitung dan simpan ke riwayat |
-| `Esc` | bersihkan ekspresi |
-| `↑` / `↓` | panggil ekspresi sebelumnya / berikutnya |
+| *klik tombol* | angka, operator, fungsi, dan aksi |
+| `Ctrl+1` | kalkulator standar |
+| `Ctrl+2` | kalkulator ilmiah |
+| `Ctrl+3` | konverter unit |
+| `Ctrl+H` | dashboard |
+| `Ctrl+K` | cari alat |
+| `Ctrl+F` | lihat favorit (dashboard) |
+| `Ctrl+D` | tandai/lepas alat aktif sebagai favorit |
 | `Ctrl+Y` | salin hasil ke clipboard |
+| `Esc` | bersihkan entri atau kembali ke dashboard |
+| `↑` / `↓` | recall ekspresi; di konverter pindah FROM/TO |
 | `F1` | bantuan |
 | `F2` | riwayat lengkap |
 | `F3` | pengaturan |
-| `F4` | mode ringkas |
 | `Ctrl+Q` | keluar |
 
-Aksi memakai `Ctrl`/`F1`–`F4` (bukan huruf biasa) karena huruf dipakai untuk
-mengetik nama fungsi dan konstanta seperti `sin`, `log`, atau `pi`.
+Aksi memakai `Ctrl`/`F1`–`F3` karena huruf biasa dipakai untuk mengetik nama
+fungsi dan konstanta seperti `sin`, `log`, atau `pi`.
 
-## Format ekspresi
+## Kalkulator standar & ilmiah
+
+Kalkulator standar punya keypad angka dan operator harian. Kalkulator
+ilmiah menambah fungsi trigonometri, logaritma, pangkat, akar, dan
+faktorial; mode sudut ditampilkan di display dan bisa diganti dari
+pengaturan.
+
+![Kalkulator ilmiah](docs/scientific.svg)
+
+### Format ekspresi
 
 **Operator** (prioritas dari rendah ke tinggi):
 
 | Operator | Arti | Contoh |
 | --- | --- | --- |
 | `+` `-` | tambah / kurang | `12 + 3` |
-| `*` `/` | kali / bagi | `12 / 4` |
+| `*` / `×` | kali | `12 × 4` |
+| `/` / `÷` | bagi | `12 ÷ 4` |
 | `-` (awalan) | negatif | `-5 + 2` |
 | `^` | pangkat (kanan-asosiatif) | `2^3^2 = 512` |
 | `%` (akhiran) | bagi 100 | `200 * 15% = 30` |
@@ -183,54 +201,59 @@ Catatan:
 - Desimal boleh pakai koma atau titik: `1,5` dan `1.5` sama-sama diterima.
 - `%` adalah akhiran "bagi 100", bukan persen-dari-kontekstual.
   Jadi `200 * 15% = 30`, sedangkan `200 + 15% = 200,15`.
+- `ncr(n;r)` dan `npr(n;r)` memakai titik koma sebagai pemisah argumen.
 
-**Fungsi satu argumen:**
-
-| Fungsi | Keterangan |
-| --- | --- |
-| `sqrt(x)` | akar kuadrat (x ≥ 0) |
-| `abs(x)` | nilai absolut |
-| `sin(x)` `cos(x)` `tan(x)` | trigonometri, mengikuti mode sudut |
-| `asin(x)` `acos(x)` `atan(x)` | invers trigonometri |
-| `log(x)` `ln(x)` | logaritma basis 10 / natural (x > 0) |
-| `exp(x)` | e pangkat x |
-| `floor(x)` `ceil(x)` | pembulatan ke bawah / atas |
-| `round(x)` | pembulatan setengah ke atas (`2,5 → 3`) |
+**Fungsi satu argumen:** `sqrt`, `cbrt`, `abs`, `sin`, `cos`, `tan`, `asin`,
+`acos`, `atan`, `log`, `ln`, `log10`, `exp`, `floor`, `ceil`, `round`.
 
 **Konstanta & variabel:** `pi`, `e`, `tau`, dan `ans` (hasil perhitungan
 terakhir). Contoh: `ans * 2` menggandakan hasil sebelumnya.
 
-**Contoh ekspresi:**
-
-```text
-12 + 3 * (4 - 1)        → 21
-sqrt(144) + 2^3         → 20
-200 * 15%               → 30
-sin(30)                 → 0,5      (mode derajat)
-1,5 + 2                 → 3,5
-5!                      → 120
-ans * 2                 → hasil sebelumnya dikali 2
-```
-
 Kalau ekspresi salah, pesan error ditulis dalam Bahasa Indonesia, misalnya
 `Pembagian dengan nol tidak terdefinisi` atau `Kurung tutup ')' kurang`.
 
-## Alur pemakaian
+## Konverter unit
 
-```text
-ketik ekspresi
-     │  (preview biru muncul saat valid)
-     ▼
-Enter ──▶ simpan ke riwayat ──▶ hasil final (mint) + panel riwayat
-     │
-     ├── Esc  bersihkan input
-     ├── ↑ ↓  panggil ulang ekspresi lama
-     └── ans  pakai hasil terakhir di ekspresi berikutnya
-```
+Tab kategori: **Area, Length, Temperature, Volume, Mass, Data, Speed,
+Time**. Panel FROM dan TO masing-masing punya dropdown satuan dan angka
+besar. Tombol `⇄` menukar FROM/TO; keypad di bawah mengisi angka aktif
+(`⌫` hapus, `C` bersihkan, `+/−` ganti tanda).
 
-![Preview saat mengetik](docs/typing.svg)
+![Konverter unit](docs/converter.svg)
 
-![Hasil tersimpan](docs/result.svg)
+Unit yang sering dipakai: mm/cm/m/km, inci/kaki/yard/mil/mil laut, Celsius/
+Fahrenheit/Kelvin/Rankine, mL/L/m³/galon, gram/kg/ton/pon/stone, byte/KB/
+MB/GB/TB (SI) dan KiB/MiB/GiB/TiB (IEC), m/s/km/jam/mph/knot, detik/menit/
+jam/hari.
+
+## Persentase & tip
+
+**Persentase** punya empat mode tombol:
+
+- `X% dari Y` — persen dari nilai.
+- `Perubahan %` — persentase naik/turun dari nilai awal ke nilai baru.
+- `Diskon` — potongan dan harga akhir.
+- `Pajak` — nominal pajak dan total.
+
+**Tip** menghitung tip, total tagihan, per orang, dan tip per orang. Persen
+bisa dipilih cepat (5/10/15/20) atau diketik sendiri.
+
+![Persentase](docs/percentage.svg)
+
+![Tip](docs/tip.svg)
+
+## Riwayat & favorit
+
+Setiap perhitungan yang dijalankan disimpan ke `history.jsonl`:
+kalkulator, konverter (`converter:<kategori>`), persentase, dan tip.
+Dashboard menampilkan 5 terakhir dengan tombol **Clear All** (memakai
+konfirmasi). `F2` membuka layar riwayat lengkap: total, hari ini, 7 hari,
+grafik batang, dan daftar hitungan.
+
+`Ctrl+D` menandai alat aktif sebagai favorit; `Ctrl+F` membuka dashboard
+tempat daftar favorit tampil.
+
+![Riwayat](docs/history.svg)
 
 ## Pengaturan
 
@@ -239,6 +262,10 @@ Enter ──▶ simpan ke riwayat ──▶ hasil final (mint) + panel riwayat
 | Presisi (digit desimal) | 0–10 | 6 |
 | Pemisah ribuan | on/off | on |
 | Mode sudut | derajat / radian | derajat |
+| Tema | gelap / terang | gelap |
+| Aksen | blue / mint / amber / rose | blue |
+| Format angka | Indonesia / plain | Indonesia |
+| Batas riwayat | 0 = tanpa batas | 0 |
 | Suara (bell) | on/off | on |
 
 Pengaturan dibuka dengan `F3` dan disimpan ke `config.json`.
@@ -255,7 +282,7 @@ Secara default:
 
 Isi folder:
 
-- `config.json` — pengaturan aplikasi.
+- `config.json` — pengaturan aplikasi + favorit.
 - `history.jsonl` — riwayat hitungan, satu JSON per baris.
 
 Lokasi data bisa diganti lewat environment variable, misalnya untuk testing:
@@ -272,23 +299,24 @@ kalkulator TUI/
 ├─ main.py                   # entry point `python main.py`
 ├─ pyproject.toml            # metadata package + perintah `hitung`/`kalkulator`
 ├─ hitung/
-│  ├─ app.py                # App Textual, keybinding, preview & simpan
+│  ├─ app.py                # App Textual, sidebar, routing alat, binding
+│  ├─ navigation.py         # registry alat untuk sidebar/dashboard/pencarian
 │  ├─ engine.py             # tokenizer + parser + evaluasi (bebas UI)
 │  ├─ format.py             # format angka Indonesia & presisi
 │  ├─ history.py            # record riwayat + agregasi 7 hari + recall
 │  ├─ config.py             # Settings + lokasi data
 │  ├─ storage.py            # baca/tulis config & riwayat
-│  ├─ theme.py              # palet warna
+│  ├─ theme.py              # palet warna + tema Textual
 │  ├─ text.py               # helper potong teks
 │  ├─ hitung.tcss           # styling Textual
-│  ├─ screens/              # riwayat, pengaturan, bantuan, konfirmasi
-│  └─ widgets/              # topbar, kartu hitung, panel riwayat, grafik
+│  ├─ data/units.py         # definisi satuan konverter
+│  ├─ engines/              # konversi, persentase (murni, tanpa UI)
+│  ├─ screens/              # riwayat, pengaturan, bantuan, pencarian, konfirmasi
+│  └─ widgets/              # sidebar, display, keypad, tiap alat, dashboard
 ├─ tests/                   # unit + integration test (pytest)
 ├─ tools/                   # dev: screenshot & dump layout SVG
 └─ docs/                    # screenshot SVG
 ```
-
-![Layar riwayat](docs/history.svg)
 
 ## Testing
 
@@ -296,7 +324,7 @@ kalkulator TUI/
 ..\..\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Kalau venv sudah aktif, cukup `python -m pytest -q`. **112 test** mencakup:
+Kalau venv sudah aktif, cukup `python -m pytest -q`. **171 test** mencakup:
 
 - evaluasi ekspresi: prioritas operator, kurung, pangkat kanan-asosiatif,
   unary minus, persen, faktorial, fungsi, konstanta, `ans`, desimal koma;
@@ -304,14 +332,17 @@ Kalau venv sudah aktif, cukup `python -m pytest -q`. **112 test** mencakup:
   fungsi, nama tidak dikenal, overflow, faktorial tidak valid;
 - format angka: ribuan, koma desimal, pembulatan setengah ke atas,
   notasi ilmiah, presisi yang di-clamp;
-- config: default, clamp, toleransi nilai aneh, override lokasi data;
+- konversi: suhu (termasuk Rankine), panjang, massa, volume, data SI/IEC,
+  kecepatan, waktu, luas, error kategori/satuan;
+- persentase dan tip: semua mode, input tidak valid, pembagian per orang;
+- config: default, clamp, toleransi nilai aneh, favorit, override lokasi data;
 - penyimpanan: round-trip config, config rusak di-backup, riwayat JSONL,
   baris rusak dilewati, hapus riwayat;
 - riwayat: hitungan hari ini, 7 hari, record terbaru, recall ekspresi unik;
-- alur UI lewat `run_test` 100×30: preview live, simpan, error, Esc, recall
-  `↑`/`↓`, salin, `ans`, modal riwayat + hapus, pengaturan, bantuan,
-  mode ringkas, terminal sempit, resize, dan data yang bertahan setelah
-  aplikasi dibuka ulang.
+- alur UI lewat `run_test`: keypad standar/ilmiah, konverter, persentase,
+  tip, dashboard, sidebar, pintasan global, modal riwayat + hapus,
+  pengaturan, bantuan, terminal sempit, resize, dan data yang bertahan
+  setelah aplikasi dibuka ulang.
 
 ## Alat Development
 
@@ -330,16 +361,15 @@ python -m tools.svg_dump docs/main.svg
 
 ## Desain
 
-- Palet gelap tenang: latar `#12151C`, kartu `#1A202B`,
+- Palet gelap tenang: latar `#0B0E14`, permukaan `#111827`,
   teks `#E6EDF3`, muted `#93A1B3`.
-- Aksen mint `#6FD3A8` untuk hasil final; biru `#8AB4F8` untuk hasil preview;
-  coral `#FF7A6B` untuk error.
-- Satu border di kartu utama, tanpa emoji, tanpa kedip.
-- Hasil besar di tengah kartu; input di bawahnya; status satu baris.
-- Panel riwayat hanya muncul kalau lebar terminal ≥ 86 kolom agar kartu
-  tetap lega; mode ringkas menyembunyikan seluruh chrome.
+- Aksen biru `#4C8DFF` untuk navigasi dan tombol aktif; mint `#6FD3A8`
+  untuk hasil; coral `#FF7A6B` untuk error.
+- Sidebar 14 kolom di kiri, keypad besar, satu display di atas.
+- Tanpa emoji, tanpa kedip, tanpa animasi yang mengganggu.
+- Terminal minimum 60 × 18; sidebar disembunyikan di bawah 90 kolom.
 
-![Mode ringkas](docs/compact.svg)
+![Terminal sempit](docs/narrow.svg)
 
 ## Troubleshooting
 
@@ -350,47 +380,30 @@ python -m tools.svg_dump docs/main.svg
   `.\run.cmd` lagi.
 - **`run.cmd` gagal memasang dependency** — biasanya tidak ada koneksi
   internet. Coba lagi, atau pasang manual dengan Python yang sama:
-  `<path-python> -m pip install -r requirements.txt`. `run.cmd` sudah
-  mencetak perintah lengkapnya kalau gagal.
+  `<path-python> -m pip install -r requirements.txt`.
 - **`ModuleNotFoundError: No module named 'textual'`** — yang terpakai
   bukan Python yang punya Textual (biasanya `python` mengarah ke Python
   global, venv belum aktif). Paling mudah pakai `.\run.cmd`. Alternatif:
-  `..\..\.venv\Scripts\python.exe main.py`, atau aktifkan venv
-  (`..\..\.venv\Scripts\Activate.ps1`) lalu `pip install -r requirements.txt`.
-  Cek interpreter yang aktif: `python -c "import sys; print(sys.executable)"`.
+  `..\..\.venv\Scripts\python.exe main.py`.
 - **PowerShell menolak `Activate.ps1`** (execution policy) — tidak perlu
   aktivasi: pakai `.\run.cmd` atau jalur langsung
-  `..\..\.venv\Scripts\python.exe main.py`. Kalau tetap ingin aktivasi,
-  jalankan sekali: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
-- **`Ctrl+Y` tidak menyalin apa pun** — terminal tidak mendukung OSC 52
-  (mis. sesi SSH lama). Hasil tetap tampil di layar dan tersimpan di
-  riwayat; salin manual dari sana.
+  `..\..\.venv\Scripts\python.exe main.py`.
+- **`Ctrl+Y` tidak menyalin apa pun** — terminal tidak mendukung OSC 52.
+  Hasil tetap tampil di layar dan tersimpan di riwayat.
 - **Terminal terlalu kecil** — aplikasi menampilkan pesan
   "minimal 60 × 18". Perbesar jendela atau perkecil font terminal.
 
 ## Catatan & Batasan
 
 - **Presisi angka** memakai `float` Python, jadi hasil desimal panjang bisa
-  menampilkan sisa pembulatan (mis. `0,1 + 0,2 = 0,3` sudah dirapikan oleh
-  preset format; presisi bisa diubah di pengaturan).
+  menampilkan sisa pembulatan; presisi bisa diubah di pengaturan.
 - **Satu instance saja**: dua instance yang jalan bersamaan akan menulis
   ke file riwayat yang sama.
-- **Keluar saat ada input**: input yang belum di-`Enter` tidak disimpan,
-  sama seperti kalkulator biasa.
-- **Riwayat tidak dibatasi ukuran** di v1; hapus lewat `F2 → Hapus semua`.
+- **Riwayat tidak dibatasi ukuran**; hapus lewat `F2 → Hapus semua` atau
+  **Clear All** di dashboard.
 - **Tanpa memori M+/MR/MC**: pakai `ans` untuk merangkai hasil.
-
-## Non-Goals (v1)
-
-Tanpa variabel bernama, tanpa grafik fungsi, tanpa konversi satuan, tanpa
-mode programmer (hex/bin), tanpa cloud sync, tanpa akun, dan tanpa
-notifikasi OS. Notifikasi cukup lewat baris status dan toast Textual.
-
-## Status
-
-Versi 1.0.0 — siap dipakai. 112 test lulus, screenshot di `docs/` dibuat
-ulang lewat `tools/screenshot.py`, dan aplikasi sudah dicoba berjalan
-sungguhan di terminal (Windows Terminal / PowerShell) lewat `.\run.cmd`.
+- **Konverter** memakai faktor konversi statis; tidak mengambil kurs atau
+  data online.
 
 ## Lisensi
 
