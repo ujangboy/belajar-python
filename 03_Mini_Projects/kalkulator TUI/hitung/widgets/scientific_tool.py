@@ -138,6 +138,8 @@ class ScientificTool(Vertical):
             self.calculate()
         elif key == "key-clear":
             self.action_clear_entry()
+        elif key == "key-backspace":
+            self.set_expression(self.expression[:-1])
         elif key == "key-angle":
             self.toggle_angle()
         elif key == "key-swap":

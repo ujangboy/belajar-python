@@ -55,9 +55,9 @@ class HelpScreen(ModalScreen[None]):
             text.append("\n")
         text.append(SHORTCUTS, style=MUTED)
 
-        text.append("\nOPERATOR\n", style=f"bold {PRIMARY}")
+        text.append("\nOPERATOR & SIMBOL\n", style=f"bold {PRIMARY}")
         text.append(
-            "+  −  ×  ÷  ^  %  !  (  )\n"
+            "+  −  ×  ÷  ^  %  !  (  )  ← hapus  ⇄ tukar\n"
             "Desimal boleh koma atau titik (1,5 atau 1.5).",
             style=MUTED,
         )
@@ -73,7 +73,8 @@ class HelpScreen(ModalScreen[None]):
             "12 × 3 + (4 − 1)  = 35\n"
             "200 + 10%         = 220  (persen kontekstual)\n"
             "sin 30            = 0,5  (mode derajat)\n"
-            "100 °C → °F       = 212  (tab Temperature)\n"
+            "5!                = 120\n"
+            "∛27               = 3\n"
             "Rp150.000 · 15%   = tip Rp22.500",
             style=MUTED,
         )

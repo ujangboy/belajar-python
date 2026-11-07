@@ -26,9 +26,12 @@ dev = [
 
 [project.scripts]
 # Setelah `pip install -e .`, aplikasi bisa dijalankan dari folder mana pun
-# cukup dengan satu perintah:  hitung  atau  kalkulator
+# cukup dengan satu perintah: hitung / kalkulator / kal / calculator / calc
 hitung = "hitung.app:main"
 kalkulator = "hitung.app:main"
+kal = "hitung.app:main"
+calculator = "hitung.app:main"
+calc = "hitung.app:main"
 
 [tool.setuptools.dynamic]
 version = { attr = "hitung.__version__" }

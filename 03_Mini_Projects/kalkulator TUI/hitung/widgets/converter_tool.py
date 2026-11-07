@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Select, Static
+from textual.widgets import Button, Static
 
 from ..data.units import CategoryDef, get_category, list_categories
 from ..engines.conversion_engine import ConversionError, convert_value
@@ -50,7 +50,7 @@ class ConverterTool(Vertical):
                 id="conv-from",
             )
             yield source
-            yield Button("?", id="conv-swap")
+            yield Button("⇄", id="conv-swap", tooltip="Tukar satuan")
             target = UnitSelector(
                 "KE",
                 select_id="conv-to-unit",
@@ -65,6 +65,25 @@ class ConverterTool(Vertical):
 
     def on_mount(self) -> None:
         self._refresh_values()
+        self._sync_responsive()
+
+    def on_resize(self, event) -> None:
+        self._sync_responsive()
+
+    def _sync_responsive(self) -> None:
+        try:
+            panels = self.query_one("#conv-panels")
+        except Exception:
+            return
+        # Susun vertikal pada lebar sempit agar FROM/TO tidak bertabrakan.
+        narrow = self.size.width < 72
+        panels.styles.layout = "vertical" if narrow else "horizontal"
+        try:
+            swap = self.query_one("#conv-swap", Button)
+            swap.styles.margin = (0, 0, 1, 0) if narrow else (2, 1, 0, 1)
+            swap.styles.width = "100%" if narrow else 7
+        except Exception:
+            pass
 
     def focus_default(self) -> None:
         self.query_one("#conv-from", UnitSelector).focus()
@@ -88,7 +107,8 @@ class ConverterTool(Vertical):
     def _focused_side(self) -> str:
         target = self.query_one("#conv-to", UnitSelector)
         try:
-            if target.has_focus or target.query_one(Select).has_focus:
+            focused = self.app.focused
+            if target.has_focus or (focused is not None and focused in target.query("*")):
                 return "to"
         except Exception:
             pass

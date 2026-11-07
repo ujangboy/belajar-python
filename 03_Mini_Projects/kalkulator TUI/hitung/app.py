@@ -27,8 +27,8 @@ from .widgets.scientific_tool import ScientificTool
 from .widgets.sidebar import Sidebar
 from .widgets.standard_tool import StandardTool
 
-# Di bawah lebar ini sidebar disembunyikan supaya kartu hitung tetap lega.
-SIDEBAR_MIN_WIDTH = 90
+# Di bawah lebar ini sidebar disembunyikan supaya konten utama tetap lega.
+SIDEBAR_MIN_WIDTH = 96
 MIN_WIDTH = 60
 MIN_HEIGHT = 18
 
@@ -76,11 +76,32 @@ class HitungApp(App[None]):
         self._apply_theme_settings(register=True)
 
     def _apply_theme_settings(self, *, register: bool = False) -> None:
-        theme = build_theme(mode=getattr(self.settings, "theme", "dark"), accent=getattr(self.settings, "accent", "mint"))
-        self._theme_name = theme.name
-        if register or theme.name not in getattr(self, "available_themes", {}):
-            self.register_theme(theme)
-        self.theme = theme.name
+        try:
+            theme = build_theme(
+                mode=getattr(self.settings, "theme", "dark"),
+                accent=getattr(self.settings, "accent", "blue"),
+            )
+            self._theme_name = theme.name
+            try:
+                available = getattr(self, "available_themes", {}) or {}
+            except Exception:
+                available = {}
+            if register or theme.name not in available:
+                try:
+                    self.register_theme(theme)
+                except Exception:
+                    pass
+            try:
+                self.theme = theme.name
+            except Exception:
+                pass
+            # Paksa refresh CSS supaya variabel tema baru teraplikasi.
+            try:
+                self.refresh_css()
+            except Exception:
+                pass
+        except Exception as error:
+            self.log.error(f"Gagal menerapkan tema: {error}")
 
     # ---- akses tool standar ----
     def _standard_tool(self) -> StandardTool | None:
