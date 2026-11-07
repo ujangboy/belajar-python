@@ -346,30 +346,110 @@ Button.-style-default:hover {
     border: round $primary;
 }
 
-/* ---------- widget v2 (sidebar/display/keypad): warna & border saja, widget menyusul di Task 3 ---------- */
+/* ---------- widget v2: shell, sidebar, display, keypad ---------- */
+#shell {
+    height: 100%;
+    layout: horizontal;
+}
+
 #sidebar {
+    width: 14;
+    min-width: 14;
+    height: 100%;
     background: $panel;
+    border: round $border;
+    padding: 0;
+    overflow-y: auto;
+}
+
+#side-brand {
+    height: 2;
+    padding: 0 1;
+    color: $primary;
+    text-style: bold;
+    content-align: center middle;
+}
+
+/* line-pad: 0 tidak sah di Textual; padding 0 + border none menyisakan 10 kolom teks. */
+#sidebar .side-btn {
+    width: 100%;
+    min-width: 0;
+    height: 1;
+    border: none;
+    padding: 0;
+    background: transparent;
+    color: $text-muted;
+    content-align: left middle;
+}
+
+#sidebar .side-btn:hover,
+#sidebar .side-btn:focus {
+    background: $surface;
+    color: $text;
+}
+
+#sidebar .side-btn.-active {
+    background: $surface;
+    color: $primary;
+    text-style: bold;
+}
+
+#tools {
+    width: 1fr;
+    height: 100%;
+}
+
+/* display tombol: terpasang di StandardTool sejak Task 3, aktif di Task 4 */
+#calc-display {
+    display: none;
+}
+
+CalculatorDisplay {
+    height: auto;
+    padding: 1 2;
+    background: $surface;
     border: round $border;
 }
 
-#calc-expression {
+.calc-expression {
     color: $text-muted;
 }
 
-#calc-result {
+.calc-result {
     color: #6FD3A8;
     text-style: bold;
 }
 
-#calc-result.-preview {
+.calc-result.-preview {
     color: $primary;
 }
 
-#calc-status,
-#calc-angle {
+.calc-status,
+.calc-angle {
     color: $text-muted;
 }
 
-.key {
+ScientificKeypad {
+    height: auto;
+    layout: grid;
+    grid-size: 4;
+    grid-gutter: 0 1;
+    padding: 1;
+}
+
+ScientificKeypad.cols-7 {
+    grid-size: 7;
+}
+
+#tools .key {
+    width: 100%;
+    min-width: 0;
+    height: 3;
     border: round $border;
+    background: $surface;
+}
+
+#tools .key:hover {
+    background: $surface;
+    border: round $primary;
 }

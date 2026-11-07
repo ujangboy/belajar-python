@@ -15,6 +15,7 @@ from ..engine import CalcError, evaluate
 from ..format import format_number
 from ..history import HistoryRecord, recall_expressions, today_count
 from ..widgets.calc_card import CalcCard
+from ..widgets.display import CalculatorDisplay
 from ..widgets.history_panel import HistoryPanel
 from ..widgets.topbar import TopBar
 
@@ -58,6 +59,9 @@ class StandardTool(Vertical):
         with Container(id="body"):
             yield CalcCard(id="calc-card")
             yield HistoryPanel(id="history-panel")
+        # Display tombol baru sudah ada; sampai Task 4 mengganti CalcCard,
+        # ia disembunyikan agar tampilan v1 tidak berubah.
+        yield CalculatorDisplay(id="calc-display")
         yield Static("Terminal terlalu kecil — minimal 60 × 18", id="too-small")
         yield Static(
             "F4 keluar mode ringkas · Esc bersihkan · F1 bantuan · Ctrl+H dashboard",

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.containers import Horizontal
 from textual.css.query import NoMatches
+from textual.events import Resize
 from textual.widgets import ContentSwitcher, Input
 
 from .config import Settings
@@ -27,7 +30,11 @@ from .widgets.finance_tool import FinanceTool
 from .widgets.math_tool import MathTool
 from .widgets.percentage_tool import PercentageTool
 from .widgets.scientific_tool import ScientificTool
+from .widgets.sidebar import Sidebar
 from .widgets.standard_tool import StandardTool
+
+# Di bawah lebar ini sidebar disembunyikan supaya kartu hitung tetap lega.
+SIDEBAR_MIN_WIDTH = 90
 
 
 class HitungApp(App[None]):
@@ -133,20 +140,34 @@ class HitungApp(App[None]):
 
     # ---- layout ----
     def compose(self) -> ComposeResult:
-        with ContentSwitcher(initial="tool-standard", id="tools"):
-            yield DashboardTool(id="tool-dashboard")
-            yield StandardTool(id="tool-standard")
-            yield ScientificTool(id="tool-scientific")
-            yield ConverterTool(id="tool-converter")
-            yield PercentageTool(id="tool-percentage")
-            yield DateTool(id="tool-date")
-            yield FinanceTool(id="tool-finance")
-            yield MathTool(id="tool-math")
-            yield DataTool(id="tool-data")
-            yield ElectricalTool(id="tool-electrical")
+        with Horizontal(id="shell"):
+            yield Sidebar(id="sidebar")
+            with ContentSwitcher(initial="tool-standard", id="tools"):
+                yield DashboardTool(id="tool-dashboard")
+                yield StandardTool(id="tool-standard")
+                yield ScientificTool(id="tool-scientific")
+                yield ConverterTool(id="tool-converter")
+                yield PercentageTool(id="tool-percentage")
+                yield DateTool(id="tool-date")
+                yield FinanceTool(id="tool-finance")
+                yield MathTool(id="tool-math")
+                yield DataTool(id="tool-data")
+                yield ElectricalTool(id="tool-electrical")
 
     def on_mount(self) -> None:
+        self._sync_sidebar_width(self.size.width)
         self.open_tool("standard")
+
+    @on(Resize)
+    def _on_app_resize(self, event: Resize) -> None:
+        self._sync_sidebar_width(event.size.width)
+
+    def _sync_sidebar_width(self, width: int) -> None:
+        try:
+            sidebar = self.query_one(Sidebar)
+        except NoMatches:
+            return
+        sidebar.display = width >= SIDEBAR_MIN_WIDTH
 
     def _modal_open(self) -> bool:
         return len(self.screen_stack) > 1
@@ -174,6 +195,10 @@ class HitungApp(App[None]):
         except NoMatches:
             return
         self._active_tool = target.removeprefix("tool-")
+        try:
+            self.query_one(Sidebar).set_active(self._active_tool)
+        except NoMatches:
+            pass
         if self._active_tool == "standard":
             tool = self._standard_tool()
             if tool:
