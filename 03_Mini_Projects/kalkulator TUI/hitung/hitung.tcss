@@ -321,15 +321,16 @@ ConverterTool {
 
 ConverterTabs {
     height: auto;
-    layout: horizontal;
-    padding: 0 0 1 0;
+    layout: grid;
+    grid-size: 4;
+    grid-gutter: 0 1;
 }
 
 ConverterTabs .tab {
-    width: auto;
+    width: 100%;
     min-width: 0;
     height: 3;
-    margin: 0 1 0 0;
+    margin: 0;
     padding: 0 1;
     border: round $border;
     background: $surface;
@@ -349,7 +350,7 @@ ConverterTabs .tab.-active {
 UnitSelector {
     width: 1fr;
     height: auto;
-    padding: 1 2;
+    padding: 0 1;
     border: round $border;
     background: $surface;
 }
@@ -364,7 +365,7 @@ UnitSelector:focus {
 }
 
 .unit-value {
-    height: 2;
+    height: 1;
     color: #6FD3A8;
     text-style: bold;
     content-align: right middle;
@@ -388,7 +389,7 @@ NumericKeypad {
     layout: grid;
     grid-size: 4;
     grid-gutter: 0 1;
-    padding: 1;
+    padding: 0;
 }
 
 #conv-key-equals {

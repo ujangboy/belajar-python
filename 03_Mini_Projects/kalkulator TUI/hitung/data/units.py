@@ -89,7 +89,7 @@ _add(CategoryDef(
     ),
 ))
 _add(CategoryDef(
-    "mass", "Berat/Massa", "kg",
+    "mass", "Massa", "kg",
     (
         _lin("mg", "Miligram (mg)", 1e-6),
         _lin("g", "Gram (g)", 0.001),
@@ -101,7 +101,7 @@ _add(CategoryDef(
     ),
 ))
 _add(CategoryDef(
-    "data", "Penyimpanan Data", "b",
+    "data", "Data", "b",
     (
         UnitDef("b", "Bit (b)"),
         UnitDef("B", "Byte (B)"),
