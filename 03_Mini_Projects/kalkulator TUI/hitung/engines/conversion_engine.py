@@ -25,6 +25,8 @@ def _temp_to_c(value: float, unit_id: str) -> float:
         return (value - 32.0) * 5.0 / 9.0
     if unit_id == "k":
         return value - 273.15
+    if unit_id == "r":
+        return value * 5.0 / 9.0 - 273.15
     raise ConversionError(f"Unit suhu '{unit_id}' tidak dikenal.")
 
 
@@ -35,34 +37,39 @@ def _c_to_temp(c: float, unit_id: str) -> float:
         return c * 9.0 / 5.0 + 32.0
     if unit_id == "k":
         return c + 273.15
+    if unit_id == "r":
+        return (c + 273.15) * 9.0 / 5.0
     raise ConversionError(f"Unit suhu '{unit_id}' tidak dikenal.")
 
 
-_DIGITAL_ORDER = ["b", "B", "KB", "MB", "GB", "TB", "PB"]
+_DIGITAL_SI = {"KB": 1, "MB": 2, "GB": 3, "TB": 4, "PB": 5}
+_DIGITAL_IEC = {"KiB": 1, "MiB": 2, "GiB": 3, "TiB": 4}
 
 
 def _digital_to_bits(value: float, unit_id: str, mode: str) -> float:
-    if unit_id not in _DIGITAL_ORDER:
-        raise ConversionError(f"Unit data '{unit_id}' tidak dikenal.")
-    base = 1024.0 if mode == "iec" else 1000.0
     if unit_id == "b":
         return value
     if unit_id == "B":
         return value * 8.0
-    exp = _DIGITAL_ORDER.index(unit_id) - 1  # KB=1
-    return value * (base ** exp) * 8.0
+    if unit_id in _DIGITAL_IEC:
+        return value * (1024.0 ** _DIGITAL_IEC[unit_id]) * 8.0
+    if unit_id in _DIGITAL_SI:
+        base = 1024.0 if mode == "iec" else 1000.0
+        return value * (base ** _DIGITAL_SI[unit_id]) * 8.0
+    raise ConversionError(f"Unit data '{unit_id}' tidak dikenal.")
 
 
 def _bits_to_digital(bits: float, unit_id: str, mode: str) -> float:
-    if unit_id not in _DIGITAL_ORDER:
-        raise ConversionError(f"Unit data '{unit_id}' tidak dikenal.")
-    base = 1024.0 if mode == "iec" else 1000.0
     if unit_id == "b":
         return bits
     if unit_id == "B":
         return bits / 8.0
-    exp = _DIGITAL_ORDER.index(unit_id) - 1
-    return bits / 8.0 / (base ** exp)
+    if unit_id in _DIGITAL_IEC:
+        return bits / 8.0 / (1024.0 ** _DIGITAL_IEC[unit_id])
+    if unit_id in _DIGITAL_SI:
+        base = 1024.0 if mode == "iec" else 1000.0
+        return bits / 8.0 / (base ** _DIGITAL_SI[unit_id])
+    raise ConversionError(f"Unit data '{unit_id}' tidak dikenal.")
 
 
 def convert_value(
