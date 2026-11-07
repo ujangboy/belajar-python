@@ -98,7 +98,7 @@ Setelah install lewat pip (lihat **Install & jalankan → Opsi 2**), aplikasi
 bisa dibuka dari folder mana pun:
 
 ```powershell
-hitung
+hitung, kalkulator, kal, calculator, calc
 ```
 
 atau `kalkulator`. Tidak perlu `cd` dan tidak perlu aktivasi venv.
